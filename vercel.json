@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "carrusel.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/carrusel.html" }
+  ]
+}
