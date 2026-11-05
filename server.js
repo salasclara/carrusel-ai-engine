@@ -188,9 +188,9 @@ Devuelve exactamente este JSON (${count} objetos en el array):
 });
 
 // ─── POST /api/carousel/image ─────────────────────────────────────────────
-// Etapa B v1.5 — dall-e-2 · 1024×1024 · URL response → fetch → base64
-// dall-e-3 y gpt-image-1 fueron retirados o requieren verificación especial.
-// dall-e-2 ya no acepta response_format; devuelve URL temporal que descargamos aquí.
+// v1.6 — gpt-image-2 · 1024×1024 · b64_json nativo
+// dall-e-2 y dall-e-3 retirados el 12 mayo 2026.
+// gpt-image-2 devuelve b64_json directamente; no hay URL temporal que descargar.
 app.post('/api/carousel/image', imageLimiter, async (req, res) => {
   const { prompt, slideIndex = 0, brandCategory = 'editorial' } = req.body;
 
@@ -202,35 +202,25 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
 
   try {
     const response = await openai.images.generate({
-      model: 'dall-e-2',
+      model: 'gpt-image-2',
       prompt: safePrompt,
       n: 1,
-      size: '1024x1024', // dall-e-2: solo cuadrado; Canvas lo recortará a 4:5
-      // response_format omitido — ningún modelo DALL-E acepta ya ese parámetro → devuelve URL
+      size: '1024x1024',
+      // response_format no soportado en gpt-image-2 — devuelve b64_json por defecto
     });
 
-    const imageUrl = response.data[0].url;
-    if (!imageUrl) {
-      return res.status(502).json({ error: 'La API no devolvió URL de imagen.' });
+    const b64 = response.data[0].b64_json;
+    if (!b64) {
+      return res.status(502).json({ error: 'La API no devolvió imagen en base64.' });
     }
-
-    // Descargamos la imagen en el backend (Node sin restricción CORS)
-    // y la convertimos a base64 para que el frontend la use directamente en Canvas.
-    const imgResp = await fetch(imageUrl);
-    if (!imgResp.ok) {
-      return res.status(502).json({ error: 'No se pudo descargar la imagen desde OpenAI.' });
-    }
-    const arrayBuffer = await imgResp.arrayBuffer();
-    const b64 = Buffer.from(arrayBuffer).toString('base64');
-    const contentType = imgResp.headers.get('content-type') || 'image/png';
 
     return res.json({
-      imageData: `data:${contentType};base64,${b64}`,
+      imageData: `data:image/png;base64,${b64}`,
       slideIndex,
-      model: 'dall-e-2',
+      model: 'gpt-image-2',
       quality: 'standard',
-      estimatedCost: 0.020,
-      note: 'Imagen descargada en backend y convertida a base64 — compatible con Canvas/ZIP.',
+      estimatedCost: 0.040,
+      note: 'Imagen generada con gpt-image-2 — base64 nativo, compatible con Canvas/ZIP.',
     });
 
   } catch (err) {
@@ -249,7 +239,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.5.0',
+    version: '1.6.0',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
