@@ -12,6 +12,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Railway (y la mayoría de PaaS) usan un proxy inverso que añade X-Forwarded-For.
+// Sin esto, express-rate-limit lanza ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1);
+
 // ─── Validar entorno ────────────────────────────────────────────────────
 if (!process.env.OPENAI_API_KEY) {
   console.error('❌ OPENAI_API_KEY no está configurada. Define la variable de entorno antes de iniciar.');
@@ -184,9 +188,9 @@ Devuelve exactamente este JSON (${count} objetos en el array):
 });
 
 // ─── POST /api/carousel/image ─────────────────────────────────────────────
-// Etapa B v1.4 — dall-e-2 · 1024×1024 · b64_json response
+// Etapa B v1.5 — dall-e-2 · 1024×1024 · URL response → fetch → base64
 // dall-e-3 y gpt-image-1 fueron retirados o requieren verificación especial.
-// dall-e-2 está disponible en cuentas estándar y soporta response_format: b64_json.
+// dall-e-2 ya no acepta response_format; devuelve URL temporal que descargamos aquí.
 app.post('/api/carousel/image', imageLimiter, async (req, res) => {
   const { prompt, slideIndex = 0, brandCategory = 'editorial' } = req.body;
 
@@ -201,22 +205,32 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
       model: 'dall-e-2',
       prompt: safePrompt,
       n: 1,
-      size: '1024x1024',         // dall-e-2: solo cuadrado; Canvas lo recortará a 4:5
-      response_format: 'b64_json', // dall-e-2 sí soporta este parámetro
+      size: '1024x1024', // dall-e-2: solo cuadrado; Canvas lo recortará a 4:5
+      // response_format omitido — ningún modelo DALL-E acepta ya ese parámetro → devuelve URL
     });
 
-    const b64 = response.data[0].b64_json;
-    if (!b64) {
-      return res.status(502).json({ error: 'La API no devolvió imagen en base64.' });
+    const imageUrl = response.data[0].url;
+    if (!imageUrl) {
+      return res.status(502).json({ error: 'La API no devolvió URL de imagen.' });
     }
 
+    // Descargamos la imagen en el backend (Node sin restricción CORS)
+    // y la convertimos a base64 para que el frontend la use directamente en Canvas.
+    const imgResp = await fetch(imageUrl);
+    if (!imgResp.ok) {
+      return res.status(502).json({ error: 'No se pudo descargar la imagen desde OpenAI.' });
+    }
+    const arrayBuffer = await imgResp.arrayBuffer();
+    const b64 = Buffer.from(arrayBuffer).toString('base64');
+    const contentType = imgResp.headers.get('content-type') || 'image/png';
+
     return res.json({
-      imageData: `data:image/png;base64,${b64}`,
+      imageData: `data:${contentType};base64,${b64}`,
       slideIndex,
       model: 'dall-e-2',
       quality: 'standard',
       estimatedCost: 0.020,
-      note: 'Imagen incluida como base64 — compatible con Canvas/ZIP.',
+      note: 'Imagen descargada en backend y convertida a base64 — compatible con Canvas/ZIP.',
     });
 
   } catch (err) {
@@ -235,7 +249,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.4.0',
+    version: '1.5.0',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
