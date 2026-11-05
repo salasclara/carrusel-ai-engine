@@ -528,23 +528,23 @@ async function layoutPhotoMode(ctx, sl, brand, idx, total, c, cat) {
     yBottom -= 24;
   }
 
-  // Label badge
+  // Label badge — extra gap above headline so badge doesn't overlap cap-height
   if (sl.label) {
     const badgeH = 44;
     ctx.font = '800 22px Inter, sans-serif';
     const lw = ctx.measureText(sl.label).width + 40;
-    roundRect(ctx, PAD, yBottom - badgeH, Math.max(lw, 180), badgeH, 22);
+    // yBottom currently sits at the headline top; push badge 32px higher for breathing room
+    const badgeY = yBottom - badgeH - 32;
+    roundRect(ctx, PAD, badgeY, Math.max(lw, 180), badgeH, 22);
     ctx.fillStyle = c.badge; ctx.fill();
     ctx.fillStyle = c.badgeTxt;
-    ctx.fillText(sl.label, PAD + 20, yBottom - 10);
+    ctx.fillText(sl.label, PAD + 20, badgeY + 29);
   }
 }
 
-// ─── Gradient mode: top-down text layout ───────────────────────────────
+// ─── Gradient mode: vertically-centred text block ──────────────────────
 async function layoutGradientMode(ctx, sl, brand, idx, total, c, cat) {
-  let yPos = PAD + 40;
-
-  // Logo + brand web
+  // Header zone (logo + web) — always at top
   if (brand.logo) {
     await drawLogoCircle(ctx, brand.logo, PAD, PAD - 10, 56, 56);
   }
@@ -552,62 +552,8 @@ async function layoutGradientMode(ctx, sl, brand, idx, total, c, cat) {
   ctx.fillStyle = c.accent; ctx.globalAlpha = 0.9;
   ctx.fillText(brand.web, brand.logo ? PAD + 68 : PAD, PAD + 30);
   ctx.globalAlpha = 1;
-  yPos = PAD + 80;
 
-  // Label badge
-  if (sl.label) {
-    ctx.font = '800 22px Inter, sans-serif';
-    const lw = ctx.measureText(sl.label).width + 40;
-    const bH = 44;
-    roundRect(ctx, PAD, yPos, Math.max(lw, 180), bH, 22);
-    ctx.fillStyle = c.badge; ctx.fill();
-    ctx.fillStyle = c.badgeTxt;
-    ctx.fillText(sl.label, PAD + 20, yPos + 29);
-    yPos += bH + 90; // 90px gap: necesario para que el titular (baseline) quede sobre la cápsula sin solaparse (cap-height ~70px a 92px de fuente)
-  }
-
-  // Headline
-  if (sl.headline) {
-    const isCover = sl.type === 'cover';
-    const hSize = isCover ? 92 : (sl.headline.length > 60 ? 62 : 76);
-    ctx.font = `italic ${hSize}px 'DM Serif Display', Georgia, serif`;
-    ctx.fillStyle = c.text;
-    const lines = wrapText(ctx, sl.headline, W - PAD * 2, 4);
-    lines.forEach((ln, i) => ctx.fillText(ln, PAD, yPos + i * (hSize * 1.15)));
-    yPos += lines.length * (hSize * 1.15) + 28;
-  }
-
-  // Bullets
-  if (sl.type === 'bullets' && sl.bullets) {
-    ctx.font = '400 32px Inter, sans-serif'; ctx.fillStyle = c.sub;
-    const maxBullets = 4;
-    sl.bullets.slice(0, maxBullets).forEach((b, i) => {
-      ctx.beginPath(); ctx.arc(PAD+10, yPos + i*68 - 10, 7, 0, Math.PI*2);
-      ctx.fillStyle = c.accent; ctx.fill();
-      ctx.fillStyle = c.sub;
-      wrapText(ctx, b, W - PAD*2 - 44, 2).forEach((bl,j) => ctx.fillText(bl, PAD+36, yPos + i*68 + j*44));
-    });
-    yPos += Math.min(sl.bullets.length, maxBullets) * 68 + 20;
-  } else if (sl.body) {
-    ctx.font = '400 34px Inter, sans-serif'; ctx.fillStyle = c.sub;
-    const bodyLines = sl.body.split('\n').flatMap(ln => wrapText(ctx, ln, W - PAD*2));
-    bodyLines.slice(0, 5).forEach((ln, i) => ctx.fillText(ln, PAD, yPos + i*52));
-    yPos += Math.min(bodyLines.length, 5) * 52 + 20;
-  }
-
-  // CTA button
-  if (sl.type === 'cta') {
-    yPos = Math.max(yPos, H - 320);
-    const btnW = W - PAD*2, btnH = 88;
-    roundRect(ctx, PAD, yPos, btnW, btnH, 44);
-    ctx.fillStyle = c.accent; ctx.fill();
-    ctx.font = '700 36px Inter, sans-serif'; ctx.fillStyle = c.badgeTxt;
-    ctx.textAlign = 'center'; ctx.fillText(brand.cta, W/2, yPos + 56);
-    ctx.textAlign = 'left';
-    yPos += btnH + 20;
-  }
-
-  // Footer
+  // Footer — always at bottom
   const fy = H - PAD + 10;
   ctx.strokeStyle = c.accent; ctx.lineWidth = 2; ctx.globalAlpha = 0.35;
   ctx.beginPath(); ctx.moveTo(PAD, fy-20); ctx.lineTo(W-PAD, fy-20); ctx.stroke();
@@ -618,9 +564,92 @@ async function layoutGradientMode(ctx, sl, brand, idx, total, c, cat) {
   ctx.font = '500 24px Inter, sans-serif'; ctx.fillText(brand.name, PAD, fy+10);
   ctx.globalAlpha = 1;
 
-  // Logo bottom-right if no top logo
-  if (brand.logo) {
-    await drawLogoCircle(ctx, brand.logo, W - PAD - 50, fy - 40, 44, 44);
+  // ── Measure text block height ──────────────────────────────────────────
+  const BADGE_H = 44, BADGE_GAP = 90;
+  let blockH = 0;
+
+  if (sl.label) blockH += BADGE_H + BADGE_GAP;
+
+  const isCover = sl.type === 'cover';
+  const hSize = isCover ? 92 : (sl.headline && sl.headline.length > 60 ? 62 : 76);
+  let headlineLines = [];
+  if (sl.headline) {
+    ctx.font = `italic ${hSize}px 'DM Serif Display', Georgia, serif`;
+    headlineLines = wrapText(ctx, sl.headline, W - PAD * 2, 4);
+    blockH += headlineLines.length * (hSize * 1.15) + 28;
+  }
+
+  let bodyLines = [];
+  if (sl.type === 'bullets' && sl.bullets) {
+    const maxBullets = 4;
+    blockH += Math.min(sl.bullets.length, maxBullets) * 68 + 20;
+  } else if (sl.body && sl.type !== 'cta') {
+    ctx.font = '400 34px Inter, sans-serif';
+    bodyLines = sl.body.split('\n').flatMap(ln => wrapText(ctx, ln, W - PAD*2));
+    blockH += Math.min(bodyLines.length, 5) * 52 + 20;
+  }
+
+  if (sl.type === 'cta') blockH += 88 + 20;
+
+  // ── Vertical centre between header zone and footer ─────────────────────
+  const TOP_ZONE  = PAD + 90;              // below logo/web line
+  const BOT_ZONE  = fy - 60;              // above footer line
+  const available = BOT_ZONE - TOP_ZONE;
+  let yPos = TOP_ZONE + Math.max(0, (available - blockH) / 2);
+
+  // ── Draw label badge ───────────────────────────────────────────────────
+  if (sl.label) {
+    ctx.font = '800 22px Inter, sans-serif';
+    const lw = ctx.measureText(sl.label).width + 40;
+    roundRect(ctx, PAD, yPos, Math.max(lw, 180), BADGE_H, 22);
+    ctx.fillStyle = c.badge; ctx.fill();
+    ctx.fillStyle = c.badgeTxt;
+    ctx.fillText(sl.label, PAD + 20, yPos + 29);
+    yPos += BADGE_H + BADGE_GAP;
+  }
+
+  // ── Draw headline ──────────────────────────────────────────────────────
+  if (sl.headline) {
+    ctx.font = `italic ${hSize}px 'DM Serif Display', Georgia, serif`;
+    ctx.fillStyle = c.text;
+    headlineLines.forEach((ln, i) => ctx.fillText(ln, PAD, yPos + i * (hSize * 1.15)));
+    yPos += headlineLines.length * (hSize * 1.15) + 28;
+  }
+
+  // ── Draw bullets ───────────────────────────────────────────────────────
+  if (sl.type === 'bullets' && sl.bullets) {
+    const maxBullets = 4;
+    ctx.font = '400 32px Inter, sans-serif'; ctx.fillStyle = c.sub;
+    sl.bullets.slice(0, maxBullets).forEach((b, i) => {
+      ctx.beginPath(); ctx.arc(PAD+10, yPos + i*68 - 10, 7, 0, Math.PI*2);
+      ctx.fillStyle = c.accent; ctx.fill();
+      ctx.fillStyle = c.sub;
+      wrapText(ctx, b, W - PAD*2 - 44, 2).forEach((bl,j) => ctx.fillText(bl, PAD+36, yPos + i*68 + j*44));
+    });
+    yPos += Math.min(sl.bullets.length, maxBullets) * 68 + 20;
+  } else if (sl.body && sl.type !== 'cta') {
+    ctx.font = '400 34px Inter, sans-serif'; ctx.fillStyle = c.sub;
+    bodyLines.slice(0, 5).forEach((ln, i) => ctx.fillText(ln, PAD, yPos + i*52));
+    yPos += Math.min(bodyLines.length, 5) * 52 + 20;
+  }
+
+  // ── CTA: body text above button, button pinned to bottom zone ─────────
+  if (sl.type === 'cta') {
+    const btnH = 88;
+    const btnY = BOT_ZONE - btnH - 20;
+    // body text above button
+    if (sl.body) {
+      ctx.font = '400 32px Inter, sans-serif'; ctx.fillStyle = c.sub;
+      const ctaBodyLines = sl.body.split('\n').flatMap(ln => wrapText(ctx, ln, W - PAD*2));
+      const ctaBodyH = Math.min(ctaBodyLines.length, 4) * 48;
+      const ctaBodyY = btnY - ctaBodyH - 24;
+      ctaBodyLines.slice(0, 4).forEach((ln, i) => ctx.fillText(ln, PAD, ctaBodyY + i*48));
+    }
+    roundRect(ctx, PAD, btnY, W - PAD*2, btnH, 44);
+    ctx.fillStyle = c.accent; ctx.fill();
+    ctx.font = '700 36px Inter, sans-serif'; ctx.fillStyle = c.badgeTxt;
+    ctx.textAlign = 'center'; ctx.fillText(brand.cta, W/2, btnY + 56);
+    ctx.textAlign = 'left';
   }
 }
 
