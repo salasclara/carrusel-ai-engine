@@ -534,7 +534,7 @@ async function layoutPhotoMode(ctx, sl, brand, idx, total, c, cat) {
     ctx.font = '800 22px Inter, sans-serif';
     const lw = ctx.measureText(sl.label).width + 40;
     // yBottom currently sits at the headline top; push badge 32px higher for breathing room
-    const badgeY = yBottom - badgeH - 32;
+    const badgeY = yBottom - badgeH - 76; // 76px ≥ cap-height del titular (≈63px a 88px) + margen de respiro
     roundRect(ctx, PAD, badgeY, Math.max(lw, 180), badgeH, 22);
     ctx.fillStyle = c.badge; ctx.fill();
     ctx.fillStyle = c.badgeTxt;
