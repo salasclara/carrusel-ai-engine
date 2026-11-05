@@ -184,8 +184,9 @@ Devuelve exactamente este JSON (${count} objetos en el array):
 });
 
 // ─── POST /api/carousel/image ─────────────────────────────────────────────
-// Etapa B — gpt-image-1 · 1024×1536 · medium quality · base64 response
-// DALL-E 3 fue retirado de la API de OpenAI el 12 de mayo de 2026.
+// Etapa B v1.2 — dall-e-3 · 1024×1792 · standard quality · b64_json response
+// gpt-image-1 requiere verificación de organización en OpenAI; dall-e-3 funciona
+// con cuentas estándar. response_format: 'b64_json' evita CORS con Canvas.
 app.post('/api/carousel/image', imageLimiter, async (req, res) => {
   const { prompt, slideIndex = 0, brandCategory = 'editorial' } = req.body;
 
@@ -193,21 +194,19 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
     return res.status(400).json({ error: 'El campo "prompt" es obligatorio.' });
   }
 
-  // Enriquecer prompt: sin texto, sin logos, ratio 4:5
-  // gpt-image-1 NO reescribe el prompt (a diferencia de DALL-E 3), mayor control editorial
-  const safePrompt = `${prompt.slice(0, 1000)}. Editorial photography style, professional, cinematic lighting, high quality. NO text overlay, NO logos, NO typography, NO watermarks. Vertical portrait composition 4:5 ratio.`;
+  // dall-e-3 reescribe el prompt internamente; aun así especificamos la intención visual.
+  const safePrompt = `${prompt.slice(0, 900)}. Editorial photography style, professional, cinematic lighting, high quality. NO text overlay, NO logos, NO typography, NO watermarks. Vertical portrait orientation.`;
 
   try {
     const response = await openai.images.generate({
-      model: 'gpt-image-1',
+      model: 'dall-e-3',
       prompt: safePrompt,
       n: 1,
-      size: '1024x1536',    // portrait más cercano a 4:5 — disponible en gpt-image-1
-      quality: 'medium',    // low=$0.006 · medium=$0.015 · high=$0.052 por imagen
-      // response_format no se especifica: gpt-image-1 retorna b64_json por defecto
+      size: '1024x1792',         // portrait disponible en dall-e-3 (ratio ~9:16)
+      quality: 'standard',       // standard=$0.040 · hd=$0.080 por imagen
+      response_format: 'b64_json', // evita CORS al dibujar en Canvas
     });
 
-    // gpt-image-1 retorna b64_json directamente — sin URLs temporales, sin problemas CORS
     const b64 = response.data[0].b64_json;
     if (!b64) {
       return res.status(502).json({ error: 'La API no devolvió imagen en base64.' });
@@ -217,9 +216,9 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
     return res.json({
       imageData: `data:image/png;base64,${b64}`,
       slideIndex,
-      model: 'gpt-image-1',
-      quality: 'medium',
-      estimatedCost: 0.015,
+      model: 'dall-e-3',
+      quality: 'standard',
+      estimatedCost: 0.040,
       note: 'Imagen incluida como base64 — no expira y es compatible con Canvas/ZIP.',
     });
 
@@ -228,7 +227,7 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
     if (err.status === 400 && (err.message.includes('safety') || err.message.includes('content_policy'))) {
       return res.status(400).json({ error: 'El prompt fue rechazado por las políticas de contenido de OpenAI. Reformula la descripción de la imagen.' });
     }
-    if (err.status === 401) return res.status(401).json({ error: 'API key de OpenAI inválida o sin permisos para gpt-image-1.' });
+    if (err.status === 401) return res.status(401).json({ error: 'API key de OpenAI inválida o sin permisos.' });
     if (err.status === 429) return res.status(429).json({ error: 'Límite de OpenAI alcanzado. Espera un momento.' });
     return res.status(500).json({ error: 'Error generando imagen: ' + err.message });
   }
@@ -239,7 +238,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.1.0',
+    version: '1.2.0',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
