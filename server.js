@@ -202,24 +202,33 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
       model: 'dall-e-3',
       prompt: safePrompt,
       n: 1,
-      size: '1024x1792',         // portrait disponible en dall-e-3 (ratio ~9:16)
-      quality: 'standard',       // standard=$0.040 · hd=$0.080 por imagen
-      response_format: 'b64_json', // evita CORS al dibujar en Canvas
+      size: '1024x1792',   // portrait disponible en dall-e-3 (ratio ~9:16)
+      quality: 'standard', // standard=$0.040 · hd=$0.080 por imagen
+      // response_format omitido: dall-e-3 ya no acepta ese parámetro → devuelve URL
     });
 
-    const b64 = response.data[0].b64_json;
-    if (!b64) {
-      return res.status(502).json({ error: 'La API no devolvió imagen en base64.' });
+    const imageUrl = response.data[0].url;
+    if (!imageUrl) {
+      return res.status(502).json({ error: 'La API no devolvió URL de imagen.' });
     }
 
-    // Retornar como data URL — el frontend lo dibuja directo en Canvas sin CORS
+    // Descargamos la imagen en el backend (Node no tiene restricción CORS)
+    // y la convertimos a base64 para que el frontend la dibuje en Canvas sin problemas.
+    const imgResp = await fetch(imageUrl);
+    if (!imgResp.ok) {
+      return res.status(502).json({ error: 'No se pudo descargar la imagen desde OpenAI.' });
+    }
+    const arrayBuffer = await imgResp.arrayBuffer();
+    const b64 = Buffer.from(arrayBuffer).toString('base64');
+    const contentType = imgResp.headers.get('content-type') || 'image/png';
+
     return res.json({
-      imageData: `data:image/png;base64,${b64}`,
+      imageData: `data:${contentType};base64,${b64}`,
       slideIndex,
       model: 'dall-e-3',
       quality: 'standard',
       estimatedCost: 0.040,
-      note: 'Imagen incluida como base64 — no expira y es compatible con Canvas/ZIP.',
+      note: 'Imagen descargada en backend y convertida a base64 — compatible con Canvas/ZIP.',
     });
 
   } catch (err) {
@@ -238,7 +247,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.2.0',
+    version: '1.3.0',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
