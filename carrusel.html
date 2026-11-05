@@ -1,0 +1,1347 @@
+<title>Carrusel Social Pro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+:root{--bg:#ECEEF5;--surface:#FFF;--surface2:#F4F6FB;--border:#DDE2EF;
+  --text:#111827;--muted:#6B7280;--accent:#4F46E5;--accent-dim:#EEF2FF;--r:12px;
+  --sh:0 2px 6px rgba(0,0,0,.07),0 8px 24px rgba(0,0,0,.06);}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D0F1A;--surface:#161825;--surface2:#1D2035;--border:#282C45;
+  --text:#F1F5F9;--muted:#8892A5;--accent:#818CF8;--accent-dim:#1E1B4B;color-scheme:dark;}}
+:root[data-theme="dark"]{--bg:#0D0F1A;--surface:#161825;--surface2:#1D2035;--border:#282C45;
+  --text:#F1F5F9;--muted:#8892A5;--accent:#818CF8;--accent-dim:#1E1B4B;color-scheme:dark;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+#app{max-width:1200px;margin:0 auto;padding-block:22px;}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:20px;height:20px;}
+.logo-name{font-size:16px;font-weight:700;letter-spacing:-.3px;}
+.logo-sub{font-size:11px;color:var(--muted);display:block;font-weight:400;}
+.hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.demo-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;
+  background:color-mix(in srgb,#F59E0B 15%,transparent);color:#92400E;border:1px solid #F59E0B44;}
+:root[data-theme="dark"] .demo-badge{color:#FCD34D;}
+.mode-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
+.mode-btn{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--muted);
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;}
+.mode-btn.active{background:var(--accent);color:#fff;}
+
+.grid{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start;}
+@media(max-width:820px){.grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
+.pnl-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px;}
+.form-group{margin-bottom:12px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.hint{font-weight:400;color:var(--muted);font-size:10px;margin-left:4px;}
+input[type=text],input[type=url],textarea,select{
+  width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:7px;
+  background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;}
+textarea{resize:vertical;min-height:90px;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 12%,transparent);}
+
+.brand-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:14px;}
+.logo-preview{width:36px;height:36px;border-radius:6px;border:1px solid var(--border);
+  background:var(--surface2);display:flex;align-items:center;justify-content:center;
+  overflow:hidden;font-size:16px;cursor:pointer;flex-shrink:0;}
+.logo-preview img{width:100%;height:100%;object-fit:contain;}
+
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;}
+.cat-pill{padding:8px 10px;border-radius:7px;border:2px solid var(--border);background:var(--surface2);
+  cursor:pointer;text-align:left;font-family:inherit;transition:all .15s;width:100%;}
+.cat-pill:hover{border-color:var(--accent);}
+.cat-pill.sel{border-color:var(--accent);background:var(--accent-dim);}
+.cat-emoji{font-size:15px;display:block;margin-bottom:2px;}
+.cat-name{font-size:11px;font-weight:700;display:block;color:var(--text);}
+.cat-desc{font-size:10px;color:var(--muted);}
+.cat-full{width:100%;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.row2 .form-group{margin:0;}
+.sep{border-top:1px solid var(--border);padding-top:12px;margin-top:12px;}
+
+.info-box{background:var(--accent-dim);border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
+  border-radius:7px;padding:9px 11px;font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.info-box b{color:var(--accent);}
+
+.btn-gen{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:opacity .15s,transform .1s;margin-top:4px;}
+.btn-gen:hover{opacity:.9;}
+.btn-gen:active{transform:scale(.98);}
+.btn-gen:disabled{opacity:.4;cursor:not-allowed;}
+
+.preview-wrap{display:flex;flex-direction:column;gap:12px;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:400px;background:var(--surface);border:1.5px dashed var(--border);
+  border-radius:var(--r);text-align:center;gap:9px;color:var(--muted);}
+.empty-icon{font-size:40px;}
+.empty-title{font-size:14px;font-weight:700;color:var(--text);}
+.empty-desc{font-size:12px;max-width:240px;}
+
+.prev-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.prev-label{font-size:12px;color:var(--muted);font-weight:500;}
+.action-row{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-sm{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);
+  color:var(--text);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-dl{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-dl:hover{opacity:.88;color:#fff;}
+.btn-zip{background:#059669;color:#fff;border-color:#059669;}
+.btn-zip:hover{opacity:.88;color:#fff;}
+#btn-zip-dl.loading{opacity:.5;pointer-events:none;}
+
+.slide-row{display:flex;align-items:center;justify-content:center;gap:9px;}
+.nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);
+  color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;transition:all .15s;line-height:1;}
+.nav-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.nav-btn:disabled{opacity:.25;cursor:not-allowed;}
+.slide-wrap{flex:1;max-width:400px;width:100%;margin:0 auto;}
+#preview-canvas{width:100%;aspect-ratio:4/5;border-radius:10px;box-shadow:var(--sh);display:block;}
+
+.strip{display:flex;gap:6px;overflow-x:auto;padding:2px;scrollbar-width:thin;}
+.thumb-wrap{flex-shrink:0;position:relative;cursor:pointer;}
+.thumb-canvas{width:60px;height:75px;border-radius:5px;display:block;border:2px solid transparent;transition:border-color .15s;}
+.thumb-canvas.active{border-color:var(--accent);}
+.thumb-num{position:absolute;bottom:3px;right:3px;font-size:8px;font-weight:800;
+  color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;}
+
+.edit-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.edit-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px;}
+.edit-fields{display:flex;flex-direction:column;gap:10px;}
+.edit-row{display:flex;flex-direction:column;gap:4px;}
+.edit-row label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.edit-row input,.edit-row textarea{font-size:13px;padding:7px 10px;}
+.photo-upload-area{border:1.5px dashed var(--border);border-radius:8px;padding:12px;text-align:center;
+  cursor:pointer;transition:all .15s;font-size:12px;color:var(--muted);}
+.photo-upload-area:hover{border-color:var(--accent);color:var(--accent);}
+.photo-thumb{width:100%;height:70px;object-fit:cover;border-radius:6px;margin-top:6px;display:block;}
+.btn-remove-photo{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-top:4px;font-family:inherit;}
+.btn-remove-photo:hover{color:#EF4444;}
+
+.photo-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.photo-controls label{font-size:10px;color:var(--muted);}
+.photo-controls input[type=range]{width:100%;margin-top:2px;accent-color:var(--accent);}
+
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;
+  transform:translateX(-50%) translateY(70px);background:var(--text);color:var(--bg);
+  padding:9px 18px;border-radius:8px;font-size:12px;font-weight:600;z-index:300;
+  transition:transform .25s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.error{background:#EF4444;color:#fff;}
+
+/* ── AI ── */
+.ai-config{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.ai-config-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.ai-config-toggle span{font-size:12px;font-weight:700;color:var(--muted);}
+.ai-config-body{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.ai-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;background:var(--accent-dim);color:var(--accent);}
+.ai-status.ok{background:color-mix(in srgb,#059669 12%,transparent);color:#065f46;}
+.ai-status.ok:root[data-theme="dark"]{color:#6ee7b7;}
+.ai-status.err{background:color-mix(in srgb,#EF4444 12%,transparent);color:#991b1b;}
+.btn-ai{width:100%;padding:11px;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;border:none;border-radius:8px;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .15s,transform .1s;margin-top:4px;}
+.btn-ai:hover{opacity:.88;}
+.btn-ai:active{transform:scale(.98);}
+.btn-ai:disabled{opacity:.35;cursor:not-allowed;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-img{background:#059669;color:#fff;border-color:#059669;}
+.btn-img:hover{opacity:.88;color:#fff;}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;}
+.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:380px;width:100%;text-align:center;line-height:1.6;}
+.confirm-box h3{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--text);}
+.confirm-box p{font-size:13px;color:var(--muted);white-space:pre-line;margin-bottom:20px;}
+.confirm-row{display:flex;gap:8px;justify-content:center;}
+.confirm-row button{padding:9px 20px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+.confirm-cancel{border:1px solid var(--border);background:var(--surface2);color:var(--text);}
+.confirm-ok{border:none;background:var(--accent);color:#fff;font-weight:700;}
+</style>
+
+<div id="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+      <div>
+        <span class="logo-name">Carrusel Social Pro</span>
+        <span class="logo-sub">Formato 1080×1350 · Facebook e Instagram</span>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span class="demo-badge">⚡ Modo demostración — sin IA conectada</span>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btn-auto" onclick="switchMode('auto')">⚡ Automática</button>
+        <button class="mode-btn" id="btn-manual" onclick="switchMode('manual')">✏️ Manual</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div>
+      <!-- AI Config -->
+      <div class="ai-config">
+        <div class="ai-config-toggle" onclick="toggleAIConfig()">
+          <span>🤖 Configuración de IA</span>
+          <span id="ai-config-arrow" style="font-size:12px;color:var(--muted);">▼</span>
+        </div>
+        <div class="ai-config-body" id="ai-config-body" hidden>
+          <div class="form-group" style="margin:0">
+            <label>URL del backend <span class="hint">sin barra final</span></label>
+            <input type="url" id="backend-url" placeholder="https://tu-proyecto.up.railway.app" oninput="saveBackendUrl()">
+          </div>
+          <div id="ai-connection-status" class="ai-status" style="display:none"></div>
+          <button class="btn-sm" onclick="checkHealth()" style="align-self:flex-start">Comprobar conexión</button>
+        </div>
+      </div>
+
+      <!-- Brand -->
+      <div class="panel" style="margin-bottom:12px;">
+        <div class="pnl-title">Marca activa</div>
+        <div class="brand-row">
+          <div class="form-group" style="margin:0">
+            <select id="brand-select" onchange="changeBrand(this.value)">
+              <option value="rocimar">📰 Noticias con Rocimar Morales</option>
+              <option value="pasarela" selected>👗 Pasarela Studio Internacional</option>
+              <option value="fancy">✨ Fancy by Roxette</option>
+              <option value="amares">💙 Amar Es</option>
+              <option value="maravillas">🌟 Maravillas del Reino</option>
+              <option value="latina768">🏠 Latina 768 Services</option>
+              <option value="custom">🔧 Marca personalizada</option>
+            </select>
+          </div>
+          <div class="logo-preview" id="logo-preview" onclick="triggerLogoUpload()" title="Subir logotipo">
+            <span id="logo-preview-content">🏷️</span>
+          </div>
+        </div>
+        <input type="file" id="logo-file" accept="image/*" hidden onchange="onLogoUpload(this)">
+        <div id="custom-brand-fields" hidden>
+          <div class="row2">
+            <div class="form-group"><label>Nombre</label><input type="text" id="custom-name" placeholder="Mi Marca" oninput="updateCustomBrand()"></div>
+            <div class="form-group"><label>Web / @usuario</label><input type="text" id="custom-web" placeholder="@mimarca" oninput="updateCustomBrand()"></div>
+          </div>
+          <div class="row2">
+            <div class="form-group"><label>Color primario</label><input type="color" id="custom-color1" value="#4F46E5" style="height:36px" onchange="updateCustomBrand()"></div>
+            <div class="form-group"><label>Color acento</label><input type="color" id="custom-color2" value="#818CF8" style="height:36px" onchange="updateCustomBrand()"></div>
+          </div>
+          <div class="form-group"><label>Llamado a la acción</label><input type="text" id="custom-cta" placeholder="Síguenos para más" oninput="updateCustomBrand()"></div>
+        </div>
+      </div>
+
+      <!-- AUTO -->
+      <div class="panel" id="pnl-auto">
+        <div class="pnl-title">Modo automático</div>
+        <div class="info-box"><b>Cómo funciona:</b> Pega el texto del artículo. El sistema lo divide en diapositivas editables.</div>
+        <div class="form-group">
+          <label>Texto del artículo <span class="hint">pega aquí el contenido</span></label>
+          <textarea id="a-text" placeholder="Pega aquí el texto completo..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <div class="cat-grid" id="a-cats">
+            <button class="cat-pill" data-c="noticias" onclick="pickCat(this,'a-cats')"><span class="cat-emoji">📰</span><span class="cat-name">Noticias</span></button>
+            <button class="cat-pill sel" data-c="publicidad" onclick="pickCat(this,'a-cats')"><span class="cat-emoji">📣</span><span class="cat-name">Publicidades</span></button>
+            <button class="cat-pill" data-c="historia" onclick="pickCat(this,'a-cats')"><span class="cat-emoji">📖</span><span class="cat-name">Historias</span></button>
+            <button class="cat-pill" data-c="mensaje" onclick="pickCat(this,'a-cats')"><span class="cat-emoji">💬</span><span class="cat-name">Mensajes</span></button>
+          </div>
+          <button class="cat-pill cat-full" data-c="reflexion" onclick="pickCat(this,'a-cats')"><span class="cat-emoji">✨</span><span class="cat-name">Reflexiones</span><span class="cat-desc"> — frases inspiradoras</span></button>
+        </div>
+        <div class="sep row2">
+          <div class="form-group"><label>Diapositivas</label>
+            <select id="a-count"><option value="0">Auto (5-7)</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+          </div>
+          <div class="form-group"><label>&nbsp;</label>
+            <button class="btn-gen" onclick="runAuto()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Generar
+            </button>
+          </div>
+        </div>
+        <button class="btn-ai" id="btn-ai-auto" onclick="generateWithAI('auto')">
+          ✨ Generar con IA
+        </button>
+      </div>
+
+      <!-- MANUAL -->
+      <div class="panel" id="pnl-manual" hidden>
+        <div class="pnl-title">Modo manual asistido</div>
+        <div class="form-group">
+          <label>Tema del carrusel</label>
+          <input type="text" id="m-topic" placeholder="ej. Inscripciones abiertas — modelaje profesional">
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <div class="cat-grid" id="m-cats">
+            <button class="cat-pill" data-c="noticias" onclick="pickCat(this,'m-cats')"><span class="cat-emoji">📰</span><span class="cat-name">Noticias</span></button>
+            <button class="cat-pill sel" data-c="publicidad" onclick="pickCat(this,'m-cats')"><span class="cat-emoji">📣</span><span class="cat-name">Publicidades</span></button>
+            <button class="cat-pill" data-c="historia" onclick="pickCat(this,'m-cats')"><span class="cat-emoji">📖</span><span class="cat-name">Historias</span></button>
+            <button class="cat-pill" data-c="mensaje" onclick="pickCat(this,'m-cats')"><span class="cat-emoji">💬</span><span class="cat-name">Mensajes</span></button>
+          </div>
+          <button class="cat-pill cat-full" data-c="reflexion" onclick="pickCat(this,'m-cats')"><span class="cat-emoji">✨</span><span class="cat-name">Reflexiones</span></button>
+        </div>
+        <div class="row2">
+          <div class="form-group"><label>Tono</label>
+            <select id="m-tone"><option>Profesional</option><option>Amigable</option><option>Urgente</option><option>Inspirador</option><option>Educativo</option></select>
+          </div>
+          <div class="form-group"><label>Audiencia</label>
+            <select id="m-aud"><option>General</option><option>Emprendedoras</option><option>Mujeres latinas</option><option>Jóvenes</option><option>Profesionales</option></select>
+          </div>
+        </div>
+        <div class="sep row2">
+          <div class="form-group"><label>Diapositivas</label>
+            <select id="m-count"><option value="5">5</option><option value="6" selected>6</option><option value="7">7</option><option value="8">8</option></select>
+          </div>
+          <div class="form-group"><label>&nbsp;</label>
+            <button class="btn-gen" onclick="runManual()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+              Generar
+            </button>
+          </div>
+        </div>
+        <button class="btn-ai" id="btn-ai-manual" onclick="generateWithAI('manual')">
+          ✨ Generar con IA
+        </button>
+      </div>
+
+      <button class="btn-gen" style="margin-top:10px;background:var(--surface);color:var(--accent);border:1.5px solid var(--accent);" onclick="loadPasarelaDemo()">
+        🎯 Cargar demo — Pasarela Studio
+      </button>
+    </div>
+
+    <!-- RIGHT: Preview -->
+    <div class="preview-wrap">
+      <div class="empty-state" id="empty">
+        <div class="empty-icon">🎠</div>
+        <div class="empty-title">Tu carrusel aparecerá aquí</div>
+        <div class="empty-desc">Carga el demo o completa el formulario y pulsa Generar</div>
+      </div>
+
+      <div id="viewer" hidden>
+        <div class="prev-top">
+          <div class="prev-label" id="prev-label">—</div>
+          <div class="action-row">
+            <button class="btn-sm btn-dl" onclick="downloadSingle()">⬇ PNG</button>
+            <button class="btn-sm btn-zip" id="btn-zip-dl" onclick="downloadZip()">📦 ZIP</button>
+            <button class="btn-sm btn-img" id="btn-gen-all-imgs" onclick="generateAllImages()">🎨 Imágenes</button>
+            <button class="btn-sm" onclick="copyAll()">📋 Textos</button>
+            <button class="btn-sm" onclick="resetView()">🔄 Nueva</button>
+          </div>
+        </div>
+
+        <div class="slide-row">
+          <button class="nav-btn" id="btn-prev" onclick="go(-1)">‹</button>
+          <div class="slide-wrap">
+            <canvas id="preview-canvas"></canvas>
+          </div>
+          <button class="nav-btn" id="btn-next" onclick="go(1)">›</button>
+        </div>
+
+        <div class="strip" id="strip"></div>
+
+        <div class="edit-panel">
+          <div class="edit-title">✏️ Editar diapositiva <span id="edit-slide-num" style="color:var(--accent)"></span></div>
+          <div class="edit-fields" id="edit-fields"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// BRANDS
+// ═══════════════════════════════════════════
+const BRANDS = {
+  rocimar:   { name:'Noticias con Rocimar Morales', web:'@RocimarNoticias', cta:'Síguenos para más noticias',
+    c:{ bg1:'#060E20', bg2:'#0F2347', accent:'#E63946', text:'#FFFFFF', sub:'#B0BDD0', badge:'#E63946', badgeTxt:'#fff' }, logo:null },
+  pasarela:  { name:'Pasarela Studio Internacional', web:'pasarelastudio.com', cta:'Solicita información hoy',
+    c:{ bg1:'#0D0107', bg2:'#7B2D3E', accent:'#C9A84C', text:'#FFFFFF', sub:'#F0E6CF', badge:'#C9A84C', badgeTxt:'#1A040C' }, logo:null },
+  fancy:     { name:'Fancy by Roxette', web:'@FancyByRoxette', cta:'Descubre tu estilo con nosotros',
+    c:{ bg1:'#2D0A2A', bg2:'#8B2063', accent:'#F4A6CD', text:'#FFFFFF', sub:'#F4D6E8', badge:'#F4A6CD', badgeTxt:'#2D0A2A' }, logo:null },
+  amares:    { name:'Amar Es', web:'@AmarEs', cta:'Comparte el amor, comparte la fe',
+    c:{ bg1:'#1A0820', bg2:'#5B1E6E', accent:'#F9A8D4', text:'#FFFFFF', sub:'#EDD5F7', badge:'#F9A8D4', badgeTxt:'#1A0820' }, logo:null },
+  maravillas:{ name:'Maravillas del Reino', web:'@MaravillasDelReino', cta:'Descubre el milagro en tu vida',
+    c:{ bg1:'#0C1A3A', bg2:'#1E3F8A', accent:'#FCD34D', text:'#FFFFFF', sub:'#D1DCF8', badge:'#FCD34D', badgeTxt:'#0C1A3A' }, logo:null },
+  latina768: { name:'Latina 768 Services', web:'latina768.com', cta:'Contáctanos hoy mismo',
+    c:{ bg1:'#061020', bg2:'#0E3360', accent:'#F97316', text:'#FFFFFF', sub:'#C4D4E8', badge:'#F97316', badgeTxt:'#fff' }, logo:null },
+  custom:    { name:'Mi Marca', web:'@mimarca', cta:'Síguenos para más',
+    c:{ bg1:'#111827', bg2:'#1F2D54', accent:'#818CF8', text:'#FFFFFF', sub:'#C4CCF0', badge:'#818CF8', badgeTxt:'#fff' }, logo:null },
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let slides = [], canvases = [], cur = 0, activeBrandId = 'pasarela', activeMode = 'auto';
+const W = 1080, H = 1350, PAD = 72;
+
+// ═══════════════════════════════════════════
+// CANVAS RENDERER
+// ═══════════════════════════════════════════
+async function drawSlide(sl, brand, idx, total) {
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  await document.fonts.ready;
+  const c = brand.c;
+  const cat = sl.cat || 'publicidad';
+  const hasPhoto = !!sl.photo;
+
+  // ── Background ──────────────────────────
+  if (hasPhoto) {
+    await drawPhotoBg(ctx, sl);
+  } else {
+    // Gradient bg
+    const gr = ctx.createLinearGradient(0, 0, W * 0.5, H);
+    gr.addColorStop(0, c.bg1);
+    gr.addColorStop(1, c.bg2);
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, W, H);
+    drawBgPattern(ctx, cat, c);
+  }
+
+  // ── Category accent decoration ───────────
+  drawCatAccent(ctx, cat, c);
+
+  // ── Layout: photo → bottom-anchored text; no-photo → top-down text ──
+  if (hasPhoto) {
+    await layoutPhotoMode(ctx, sl, brand, idx, total, c, cat);
+  } else {
+    await layoutGradientMode(ctx, sl, brand, idx, total, c, cat);
+  }
+
+  return cv;
+}
+
+// ─── Photo mode: magazine layout ───────────────────────────────────────
+async function drawPhotoBg(ctx, sl) {
+  const img = await loadImage(sl.photo);
+  if (!img) return;
+  const offsetY = sl.photoOffsetY || 0; // -50 to +50 (percentage)
+  const scale = sl.photoScale || 1.0;   // 1.0 to 1.5
+  const iR = img.width / img.height, cR = W / H;
+  let sw = img.width, sh = img.height, sx = 0, sy = 0;
+  if (iR > cR) { sw = img.height * cR * scale; sx = (img.width - sw) / 2; }
+  else { sh = img.width / cR * scale; sy = (img.height - sh) * (0.5 + offsetY / 100); }
+  ctx.drawImage(img, Math.max(0,sx), Math.max(0,sy), Math.min(img.width,sw), Math.min(img.height,sh), 0, 0, W, H);
+}
+
+async function layoutPhotoMode(ctx, sl, brand, idx, total, c, cat) {
+  // Gradient: covers bottom 55% → text readable, photo visible at top
+  const textZoneStart = H * 0.42;
+  const grad = ctx.createLinearGradient(0, textZoneStart - 80, 0, H);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.25, c.bg1 + 'CC');
+  grad.addColorStop(1, c.bg1 + 'F5');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Top: brand web (small, over photo area)
+  ctx.font = '600 24px Inter, sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.85;
+  ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 8;
+  ctx.fillText(brand.web, PAD, PAD + 28);
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+
+  // Build text from BOTTOM UP
+  let yBottom = H - PAD - 20;
+
+  // Footer: slide counter + brand name
+  ctx.font = '500 24px Inter, sans-serif';
+  ctx.fillStyle = c.sub; ctx.globalAlpha = 0.7;
+  ctx.fillText(brand.name, PAD, yBottom);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = c.accent; ctx.globalAlpha = 1;
+  ctx.font = '700 26px Inter, sans-serif';
+  ctx.fillText(`${idx+1} / ${total}`, W - PAD, yBottom);
+  ctx.textAlign = 'left';
+  yBottom -= 44;
+
+  // Thin accent line
+  ctx.strokeStyle = c.accent; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.4;
+  ctx.beginPath(); ctx.moveTo(PAD, yBottom); ctx.lineTo(W-PAD, yBottom); ctx.stroke();
+  ctx.globalAlpha = 1;
+  yBottom -= 28;
+
+  // CTA button (if cta type)
+  if (sl.type === 'cta') {
+    const btnH = 84, btnW = W - PAD * 2;
+    roundRect(ctx, PAD, yBottom - btnH, btnW, btnH, 42);
+    ctx.fillStyle = c.accent; ctx.fill();
+    ctx.font = '700 34px Inter, sans-serif';
+    ctx.fillStyle = c.badgeTxt; ctx.textAlign = 'center';
+    ctx.fillText(brand.cta, W/2, yBottom - btnH/2 + 12);
+    ctx.textAlign = 'left';
+    yBottom -= btnH + 20;
+  }
+
+  // Body text
+  if (sl.body && sl.type !== 'cta') {
+    ctx.font = '400 32px Inter, sans-serif';
+    ctx.fillStyle = c.sub;
+    const bodyLines = sl.body.split('\n').flatMap(line => wrapText(ctx, line, W - PAD * 2));
+    const lh = 48;
+    const totalH2 = bodyLines.length * lh;
+    yBottom -= totalH2 - lh;
+    bodyLines.slice(0,4).forEach((ln,i) => ctx.fillText(ln, PAD, yBottom + i*lh));
+    yBottom -= 24;
+  }
+
+  // Bullets
+  if (sl.type === 'bullets' && sl.bullets) {
+    const lh = 62;
+    yBottom -= sl.bullets.length * lh;
+    sl.bullets.forEach((b, i) => {
+      ctx.beginPath(); ctx.arc(PAD+10, yBottom + i*lh - 8, 6, 0, Math.PI*2);
+      ctx.fillStyle = c.accent; ctx.fill();
+      ctx.font = '400 30px Inter, sans-serif'; ctx.fillStyle = c.sub;
+      wrapText(ctx, b, W - PAD*2 - 40, 1).forEach((bl,j) => ctx.fillText(bl, PAD+36, yBottom + i*lh + j*42));
+    });
+    yBottom -= 20;
+  }
+
+  // Headline
+  if (sl.headline) {
+    const isCover = sl.type === 'cover';
+    const hSize = isCover ? 88 : (sl.headline.length > 50 ? 60 : 72);
+    ctx.font = `italic ${hSize}px 'DM Serif Display', Georgia, serif`;
+    ctx.fillStyle = c.text;
+    const lines = wrapText(ctx, sl.headline, W - PAD * 2, 3);
+    const totalH3 = lines.length * (hSize * 1.15);
+    yBottom -= totalH3;
+    lines.forEach((ln, i) => ctx.fillText(ln, PAD, yBottom + i * (hSize * 1.15)));
+    yBottom -= 24;
+  }
+
+  // Label badge
+  if (sl.label) {
+    const badgeH = 44;
+    ctx.font = '800 22px Inter, sans-serif';
+    const lw = ctx.measureText(sl.label).width + 40;
+    roundRect(ctx, PAD, yBottom - badgeH, Math.max(lw, 180), badgeH, 22);
+    ctx.fillStyle = c.badge; ctx.fill();
+    ctx.fillStyle = c.badgeTxt;
+    ctx.fillText(sl.label, PAD + 20, yBottom - 10);
+  }
+}
+
+// ─── Gradient mode: top-down text layout ───────────────────────────────
+async function layoutGradientMode(ctx, sl, brand, idx, total, c, cat) {
+  let yPos = PAD + 40;
+
+  // Logo + brand web
+  if (brand.logo) {
+    await drawLogoCircle(ctx, brand.logo, PAD, PAD - 10, 56, 56);
+  }
+  ctx.font = '600 26px Inter, sans-serif';
+  ctx.fillStyle = c.accent; ctx.globalAlpha = 0.9;
+  ctx.fillText(brand.web, brand.logo ? PAD + 68 : PAD, PAD + 30);
+  ctx.globalAlpha = 1;
+  yPos = PAD + 80;
+
+  // Label badge
+  if (sl.label) {
+    ctx.font = '800 22px Inter, sans-serif';
+    const lw = ctx.measureText(sl.label).width + 40;
+    const bH = 44;
+    roundRect(ctx, PAD, yPos, Math.max(lw, 180), bH, 22);
+    ctx.fillStyle = c.badge; ctx.fill();
+    ctx.fillStyle = c.badgeTxt;
+    ctx.fillText(sl.label, PAD + 20, yPos + 29);
+    yPos += bH + 90; // 90px gap: necesario para que el titular (baseline) quede sobre la cápsula sin solaparse (cap-height ~70px a 92px de fuente)
+  }
+
+  // Headline
+  if (sl.headline) {
+    const isCover = sl.type === 'cover';
+    const hSize = isCover ? 92 : (sl.headline.length > 60 ? 62 : 76);
+    ctx.font = `italic ${hSize}px 'DM Serif Display', Georgia, serif`;
+    ctx.fillStyle = c.text;
+    const lines = wrapText(ctx, sl.headline, W - PAD * 2, 4);
+    lines.forEach((ln, i) => ctx.fillText(ln, PAD, yPos + i * (hSize * 1.15)));
+    yPos += lines.length * (hSize * 1.15) + 28;
+  }
+
+  // Bullets
+  if (sl.type === 'bullets' && sl.bullets) {
+    ctx.font = '400 32px Inter, sans-serif'; ctx.fillStyle = c.sub;
+    const maxBullets = 4;
+    sl.bullets.slice(0, maxBullets).forEach((b, i) => {
+      ctx.beginPath(); ctx.arc(PAD+10, yPos + i*68 - 10, 7, 0, Math.PI*2);
+      ctx.fillStyle = c.accent; ctx.fill();
+      ctx.fillStyle = c.sub;
+      wrapText(ctx, b, W - PAD*2 - 44, 2).forEach((bl,j) => ctx.fillText(bl, PAD+36, yPos + i*68 + j*44));
+    });
+    yPos += Math.min(sl.bullets.length, maxBullets) * 68 + 20;
+  } else if (sl.body) {
+    ctx.font = '400 34px Inter, sans-serif'; ctx.fillStyle = c.sub;
+    const bodyLines = sl.body.split('\n').flatMap(ln => wrapText(ctx, ln, W - PAD*2));
+    bodyLines.slice(0, 5).forEach((ln, i) => ctx.fillText(ln, PAD, yPos + i*52));
+    yPos += Math.min(bodyLines.length, 5) * 52 + 20;
+  }
+
+  // CTA button
+  if (sl.type === 'cta') {
+    yPos = Math.max(yPos, H - 320);
+    const btnW = W - PAD*2, btnH = 88;
+    roundRect(ctx, PAD, yPos, btnW, btnH, 44);
+    ctx.fillStyle = c.accent; ctx.fill();
+    ctx.font = '700 36px Inter, sans-serif'; ctx.fillStyle = c.badgeTxt;
+    ctx.textAlign = 'center'; ctx.fillText(brand.cta, W/2, yPos + 56);
+    ctx.textAlign = 'left';
+    yPos += btnH + 20;
+  }
+
+  // Footer
+  const fy = H - PAD + 10;
+  ctx.strokeStyle = c.accent; ctx.lineWidth = 2; ctx.globalAlpha = 0.35;
+  ctx.beginPath(); ctx.moveTo(PAD, fy-20); ctx.lineTo(W-PAD, fy-20); ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'right'; ctx.fillStyle = c.accent;
+  ctx.font = '700 26px Inter, sans-serif'; ctx.fillText(`${idx+1} / ${total}`, W-PAD, fy+10);
+  ctx.textAlign = 'left'; ctx.fillStyle = c.sub; ctx.globalAlpha = 0.7;
+  ctx.font = '500 24px Inter, sans-serif'; ctx.fillText(brand.name, PAD, fy+10);
+  ctx.globalAlpha = 1;
+
+  // Logo bottom-right if no top logo
+  if (brand.logo) {
+    await drawLogoCircle(ctx, brand.logo, W - PAD - 50, fy - 40, 44, 44);
+  }
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────
+function drawBgPattern(ctx, cat, c) {
+  ctx.save(); ctx.globalAlpha = 0.07;
+  if (cat === 'publicidad' || cat === 'historia') {
+    ctx.strokeStyle = c.accent; ctx.lineWidth = 1;
+    for (let x = -H; x < W+H; x += 60) {
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+H,H); ctx.stroke();
+    }
+  } else if (cat === 'reflexion' || cat === 'mensaje') {
+    ctx.fillStyle = c.accent;
+    for (let x = 60; x < W; x += 80) for (let y = 60; y < H; y += 80) {
+      ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+    }
+  } else {
+    ctx.strokeStyle = c.accent; ctx.lineWidth = 1;
+    for (let y = 100; y < H; y += 80) {
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawCatAccent(ctx, cat, c) {
+  if (cat === 'publicidad' || cat === 'historia') {
+    const len = 80, lx = PAD-20, ly = PAD-20, rx = W-PAD+20, ry = H-PAD+20;
+    ctx.strokeStyle = c.accent; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55;
+    ctx.beginPath(); ctx.moveTo(lx+len,ly); ctx.lineTo(lx,ly); ctx.lineTo(lx,ly+len); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx-len,ly); ctx.lineTo(rx,ly); ctx.lineTo(rx,ly+len); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(lx+len,ry); ctx.lineTo(lx,ry); ctx.lineTo(lx,ry-len); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx-len,ry); ctx.lineTo(rx,ry); ctx.lineTo(rx,ry-len); ctx.stroke();
+    ctx.globalAlpha = 1;
+  } else if (cat === 'noticias') {
+    ctx.fillStyle = c.accent; ctx.fillRect(0,0,W,10);
+  } else if (cat === 'reflexion') {
+    const gr = ctx.createRadialGradient(W,0,0,W,0,500);
+    gr.addColorStop(0, c.accent+'33'); gr.addColorStop(1,'transparent');
+    ctx.fillStyle = gr; ctx.fillRect(0,0,W,H);
+  }
+}
+
+function loadImage(src) {
+  return new Promise(r => {
+    const img = new Image();
+    img.onload = () => r(img); img.onerror = () => r(null); img.src = src;
+  });
+}
+
+function drawLogoCircle(ctx, src, x, y, w, h) {
+  return new Promise(r => {
+    const img = new Image();
+    img.onload = () => {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(x+w/2, y+h/2, w/2, 0, Math.PI*2); ctx.clip();
+      ctx.drawImage(img, x, y, w, h);
+      ctx.restore(); r();
+    };
+    img.onerror = r; img.src = src;
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+}
+
+function wrapText(ctx, text, maxW, maxLines = 4) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const test = line ? line+' '+word : word;
+    if (ctx.measureText(test).width > maxW && line) {
+      lines.push(line); line = word;
+      if (lines.length >= maxLines) { lines[lines.length-1] += '…'; return lines; }
+    } else { line = test; }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+async function renderAll() {
+  const brand = BRANDS[activeBrandId];
+  canvases = [];
+  for (let i = 0; i < slides.length; i++) {
+    canvases.push(await drawSlide(slides[i], brand, i, slides.length));
+  }
+  document.getElementById('empty').hidden = true;
+  document.getElementById('viewer').hidden = false;
+  document.getElementById('prev-label').textContent = `${brand.name} · ${slides.length} diapositivas`;
+  buildStrip(); showSlide(0);
+}
+
+async function redrawSlide(i) {
+  const brand = BRANDS[activeBrandId];
+  canvases[i] = await drawSlide(slides[i], brand, i, slides.length);
+  const thumbs = document.querySelectorAll('.thumb-canvas');
+  if (thumbs[i]) { const tc=thumbs[i]; tc.getContext('2d').clearRect(0,0,tc.width,tc.height); tc.getContext('2d').drawImage(canvases[i],0,0,tc.width,tc.height); }
+  if (cur===i) { const pc=document.getElementById('preview-canvas'); pc.width=W; pc.height=H; pc.getContext('2d').drawImage(canvases[i],0,0); }
+}
+
+function showSlide(i) {
+  cur = i;
+  const cv = canvases[i];
+  const pc = document.getElementById('preview-canvas');
+  pc.width = cv.width; pc.height = cv.height;
+  pc.getContext('2d').drawImage(cv, 0, 0);
+  document.querySelectorAll('.thumb-canvas').forEach((t,ti)=>t.classList.toggle('active',ti===i));
+  document.getElementById('btn-prev').disabled = i===0;
+  document.getElementById('btn-next').disabled = i===slides.length-1;
+  buildEditPanel(i);
+  document.getElementById('edit-slide-num').textContent = `${i+1} de ${slides.length}`;
+  document.querySelectorAll('.thumb-wrap')[i]?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+function buildStrip() {
+  const strip = document.getElementById('strip');
+  strip.innerHTML = '';
+  canvases.forEach((cv, i) => {
+    const wrap = document.createElement('div'); wrap.className='thumb-wrap'; wrap.onclick=()=>showSlide(i);
+    const tc = document.createElement('canvas'); tc.width=120; tc.height=150;
+    tc.className='thumb-canvas'+(i===cur?' active':''); tc.getContext('2d').drawImage(cv,0,0,120,150);
+    const num = document.createElement('span'); num.className='thumb-num'; num.textContent=i+1;
+    wrap.append(tc,num); strip.appendChild(wrap);
+  });
+}
+
+function buildEditPanel(i) {
+  const sl = slides[i];
+  const fields = document.getElementById('edit-fields');
+  fields.innerHTML = '';
+
+  const addField = (lbl, val, multi, key, bulletIdx=-1) => {
+    const row = document.createElement('div'); row.className='edit-row';
+    const lb = document.createElement('label'); lb.textContent = lbl;
+    const inp = document.createElement(multi?'textarea':'input');
+    if(!multi) inp.type='text'; inp.value=val||''; if(multi) inp.rows=2;
+    inp.oninput = () => {
+      if(bulletIdx>=0) slides[i].bullets[bulletIdx]=inp.value;
+      else slides[i][key]=inp.value;
+      debounceRedraw(i);
+    };
+    row.append(lb,inp); fields.appendChild(row);
+  };
+
+  addField('Etiqueta', sl.label, false, 'label');
+  addField('Titular', sl.headline, false, 'headline');
+  if (sl.type==='bullets'&&sl.bullets) sl.bullets.forEach((b,bi)=>addField(`Punto ${bi+1}`,b,false,null,bi));
+  else if (sl.body!==null&&sl.body!==undefined) addField('Cuerpo',sl.body,true,'body');
+
+  // Photo upload
+  const prow = document.createElement('div'); prow.className='edit-row';
+  const plbl = document.createElement('label'); plbl.textContent='Fotografía de fondo';
+  const parea = document.createElement('div'); parea.className='photo-upload-area';
+  if (sl.photo) {
+    parea.innerHTML = `<img src="${sl.photo}" class="photo-thumb"><button class="btn-remove-photo" onclick="removePhoto(${i})">✕ Quitar fotografía</button>`;
+    // Photo controls
+    const pc2 = document.createElement('div'); pc2.className='photo-controls';
+    pc2.innerHTML = `
+      <div><label>Posición vertical</label><input type="range" min="-50" max="50" value="${sl.photoOffsetY||0}" oninput="slides[${i}].photoOffsetY=parseInt(this.value);debounceRedraw(${i})"></div>
+      <div><label>Escala</label><input type="range" min="100" max="150" value="${Math.round((sl.photoScale||1)*100)}" oninput="slides[${i}].photoScale=parseInt(this.value)/100;debounceRedraw(${i})"></div>`;
+    parea.appendChild(pc2);
+  } else {
+    parea.textContent = '📷 Haz clic para subir fotografía';
+  }
+  parea.onclick = (e) => { if (!e.target.classList.contains('btn-remove-photo')&&e.target.tagName!=='INPUT') triggerPhotoUpload(i); };
+  prow.append(plbl, parea); fields.appendChild(prow);
+
+  // Botón generación de imagen IA (solo si hay imagePrompt de la IA)
+  if (sl.imagePrompt) {
+    const aiRow = document.createElement('div'); aiRow.className='edit-row';
+    const aiLbl = document.createElement('label'); aiLbl.textContent='Imagen IA';
+    const aiBtn = document.createElement('button');
+    aiBtn.id = `btn-img-gen-${i}`;
+    aiBtn.className = 'btn-ai';
+    aiBtn.style.cssText = 'margin-top:0;font-size:12px;padding:9px 11px;';
+    aiBtn.textContent = sl.photo ? '↺ Regenerar imagen' : '🎨 Generar imagen IA';
+    aiBtn.onclick = () => generateImage(i);
+    aiRow.append(aiLbl, aiBtn);
+    fields.appendChild(aiRow);
+  }
+}
+
+let redrawTimer;
+function debounceRedraw(i) { clearTimeout(redrawTimer); redrawTimer=setTimeout(()=>redrawSlide(i),400); }
+
+// ═══════════════════════════════════════════
+// GENERATORS
+// ═══════════════════════════════════════════
+function getActiveCat(panelId) {
+  const id = panelId||(activeMode==='auto'?'a-cats':'m-cats');
+  const g = document.getElementById(id);
+  const sel = g.parentElement.querySelector('.cat-pill.sel');
+  return sel ? sel.dataset.c : 'publicidad';
+}
+
+function runAuto() {
+  const text = document.getElementById('a-text').value.trim();
+  if(text.length<40){toast('⚠️ Pega el texto del artículo primero','error');return;}
+  const count = parseInt(document.getElementById('a-count').value)||0;
+  const cat = getActiveCat('a-cats');
+  const p = parseArticle(text);
+  const n = count||Math.min(7,Math.max(5,Math.ceil(p.sents.length/2)));
+  slides = buildAutoSlides(p,cat,n);
+  renderAll();
+}
+
+function parseArticle(raw) {
+  const sents = raw.replace(/\n{2,}/g,' ').split(/(?<=[.!?])\s+/).map(s=>s.trim()).filter(s=>s.length>20);
+  const headline = sents[0]&&sents[0].length<=120?sents[0]:sents[0]?.slice(0,110)+'…';
+  const statRx = /\d[\d,.]*\s*(%|millones?|mil|dólares?|años?|meses?|personas?)/gi;
+  return { headline, sents, stats:sents.filter(s=>statRx.test(s)&&s.length<160), rest:sents.slice(1) };
+}
+
+function buildAutoSlides(p, cat, count) {
+  const L = { noticias:['BREAKING','CONTEXTO','PUNTOS CLAVE','DATO','DETALLES','¿QUÉ OPINAS?'],
+    publicidad:['ATENCIÓN','EL PROBLEMA','BENEFICIOS','CÓMO FUNCIONA','OFERTA','¡ACTÚA AHORA!'],
+    historia:['MI HISTORIA','EL INICIO','EL DESAFÍO','LO QUE APRENDÍ','EL CAMBIO','¿Y TÚ?'],
+    mensaje:['MENSAJE','POR QUÉ ESCRIBO','LO PRINCIPAL','PUNTOS CLAVE','EL LLAMADO','GRACIAS'],
+    reflexion:['REFLEXIÓN','EL PENSAMIENTO','POR QUÉ IMPORTA','CÓMO APLICARLO','LA PREGUNTA','COMPARTE'] }[cat]||[];
+  const res = [{ type:'cover',cat,label:L[0],headline:p.headline,body:null,bullets:null,photo:null }];
+  const ctx2 = p.rest.find(s=>s.length>40&&s.length<200);
+  if(ctx2) res.push({type:'content',cat,label:L[1],headline:ctx2.length>110?ctx2.slice(0,110)+'…':ctx2,body:null,bullets:null,photo:null});
+  const pool=[...p.stats,...p.rest.filter(s=>!p.stats.includes(s))].filter((s,i,a)=>a.indexOf(s)===i&&s!==p.headline&&s!==ctx2).slice(0,4);
+  if(pool.length>=3) res.push({type:'bullets',cat,label:L[2],headline:'Puntos destacados',body:null,bullets:pool.slice(0,3).map(s=>s.length>95?s.slice(0,95)+'…':s),photo:null});
+  const used=new Set(res.map(s=>s.headline));
+  for(const s of p.rest){if(res.length>=count-1)break;if(!used.has(s)&&s.length>30){res.push({type:'content',cat,label:L[3]||'DETALLE',headline:s.length>110?s.slice(0,110)+'…':s,body:null,bullets:null,photo:null});used.add(s);}}
+  res.push({type:'cta',cat,label:L[5]||'COMPARTE',headline:ctaH(cat),body:ctaB(cat),bullets:null,photo:null});
+  return res.slice(0,count);
+}
+function ctaH(c){return{noticias:'¿Qué piensas?',publicidad:'¡Escríbenos hoy!',historia:'¿Te identificas?',mensaje:'Gracias por leer',reflexion:'¿Qué reflexión te llevás?'}[c]||'¡Síguenos!';}
+function ctaB(c){return{noticias:'Comenta 👇 · Guarda · Comparte',publicidad:'📲 Escríbenos a nuestra bio',historia:'Comenta tu historia 👇',mensaje:'Comparte con quien lo necesite 💙',reflexion:'Comenta aquí 👇 · Síguenos ✨'}[c]||'';}
+
+const TEMPLATES = {
+  noticias:(t)=>[{type:'cover',label:'ÚLTIMA HORA',headline:t},{type:'content',label:'QUÉ PASÓ',headline:`Todo sobre: ${t}`,body:'El evento tomó relevancia y es importante estar informados.'},{type:'bullets',label:'LO QUE DEBES SABER',headline:'Puntos clave',bullets:['El suceso tiene impacto en la comunidad','Expertos ya se pronunciaron al respecto','Los próximos días definirán el panorama']},{type:'content',label:'POR QUÉ IMPORTA',headline:'El impacto',body:'Este tema nos afecta directamente. Estar informados nos permite actuar con claridad.'},{type:'content',label:'QUÉ SIGUE',headline:'Lo que se espera',body:'Se esperan novedades próximamente. Mantente al tanto de los desarrollos.'},{type:'cta',label:'OPINA',headline:'¿Qué piensas?',body:'Comenta 👇 · Guarda · Comparte'}],
+  publicidad:(t)=>[{type:'cover',label:'INSCRIPCIONES ABIERTAS',headline:t},{type:'content',label:'TU FUTURO COMIENZA AQUÍ',headline:'Formación de calidad',body:'Un programa diseñado para transformar tu talento en una carrera exitosa.'},{type:'bullets',label:'LO QUE APRENDERÁS',headline:'Programa completo',bullets:['Técnicas profesionales y práctica real','Desarrollo personal y de marca propia','Acompañamiento durante el proceso']},{type:'content',label:'UNA OPORTUNIDAD',headline:'No esperes más',body:'Esta es tu oportunidad de dar el primer paso hacia tus metas.'},{type:'cta',label:'MÁS INFORMACIÓN',headline:'Solicita información hoy',body:'Contáctanos para conocer los detalles.'}],
+  historia:(t)=>[{type:'cover',label:'MI HISTORIA',headline:t},{type:'content',label:'EL INICIO',headline:'Todo comenzó así…',body:'Había momentos de incertidumbre. Pero ese fue el punto de partida.'},{type:'content',label:'EL DESAFÍO',headline:'El momento más difícil',body:'No fue fácil. Hubo obstáculos. Pero algo dentro de mí me impulsó a seguir adelante.'},{type:'bullets',label:'LO QUE APRENDÍ',headline:'Lecciones valiosas',bullets:['Cada obstáculo tiene algo que enseñar','La constancia abre puertas que el talento solo no puede','Las personas correctas marcan la diferencia']},{type:'content',label:'EL CAMBIO',headline:'Cuando todo cambió',body:'Una decisión lo transformó todo. Una acción, un momento de valentía.'},{type:'cta',label:'¿Y TÚ?',headline:'¿Cuál es tu historia?',body:'Cuéntame en los comentarios 👇'}],
+  mensaje:(t)=>[{type:'cover',label:'MENSAJE',headline:t},{type:'content',label:'HOLA COMUNIDAD',headline:'Hola a todos 👋',body:'Hoy quiero compartir algo que ha estado en mi mente y corazón.'},{type:'bullets',label:'PUNTOS CLAVE',headline:'Lo más importante',bullets:['Esto nos afecta a todos de una u otra forma','Hay acciones que podemos tomar desde hoy','El apoyo de la comunidad hace la diferencia']},{type:'content',label:'EL LLAMADO',headline:'Lo que te pido',body:'Si este mensaje resuena contigo, compártelo. Alguien cercano puede necesitarlo.'},{type:'cta',label:'GRACIAS',headline:'Gracias por estar aquí',body:'Tu apoyo significa todo 💙'}],
+  reflexion:(t)=>[{type:'cover',label:'REFLEXIÓN DEL DÍA',headline:t},{type:'content',label:'EL PENSAMIENTO',headline:`"${t}"`,body:null},{type:'content',label:'POR QUÉ IMPORTA',headline:'El trasfondo',body:'Vivimos tan rápido que rara vez nos detenemos a pensar en lo que realmente importa.'},{type:'bullets',label:'CÓMO APLICARLO',headline:'En tu vida diaria',bullets:['Empieza con una acción pequeña pero constante','Obsérvate con honestidad; el cambio viene de la conciencia','Comparte esta idea con alguien que lo necesite hoy']},{type:'cta',label:'COMPARTE',headline:'¿Con quién compartes esto?',body:'Comenta aquí 👇 · Síguenos ✨'}],
+};
+
+function runManual() {
+  const topic = document.getElementById('m-topic').value.trim();
+  if(!topic){toast('⚠️ Escribe el tema del carrusel','error');document.getElementById('m-topic').focus();return;}
+  const count = parseInt(document.getElementById('m-count').value);
+  const cat = getActiveCat('m-cats');
+  slides = (TEMPLATES[cat]||TEMPLATES.noticias)(topic).slice(0,count).map(s=>({...s,cat,photo:null}));
+  renderAll();
+}
+
+// ═══════════════════════════════════════════
+// DEMO PASARELA STUDIO
+// ═══════════════════════════════════════════
+function loadPasarelaDemo() {
+  activeBrandId = 'pasarela';
+  document.getElementById('brand-select').value = 'pasarela';
+  updateBrandUI();
+  slides = [
+    { type:'cover',   cat:'publicidad', label:'¡INSCRIPCIONES ABIERTAS!',
+      headline:'Tu talento merece un escenario.', body:null, bullets:null, photo:null },
+    { type:'content', cat:'publicidad', label:'DESCUBRE TU POTENCIAL',
+      headline:'Desarrolla confianza, elegancia y seguridad personal.',
+      body:'Aprende a expresarte con autenticidad y a proyectar una imagen que te represente.', bullets:null, photo:null },
+    { type:'bullets', cat:'publicidad', label:'PREPÁRATE PARA DESTACAR',
+      headline:'Técnicas que transforman',
+      bullets:['Pasarela y fotopose profesional','Expresión corporal e imagen personal','Desarrollo de confianza y presencia'], photo:null },
+    { type:'content', cat:'publicidad', label:'TU HISTORIA COMIENZA AQUÍ',
+      headline:'Da el primer paso para desarrollar tu talento.',
+      body:'El mundo del modelaje y el desarrollo personal te espera. Comienza con nosotros.', bullets:null, photo:null },
+    { type:'cta',     cat:'publicidad', label:'¡ES TU MOMENTO DE BRILLAR!',
+      headline:'Solicita información sobre nuestros programas.',
+      body:'Pasarela Studio Internacional', bullets:null, photo:null },
+  ];
+  renderAll().then(() => toast('🎉 Demo de Pasarela Studio cargado'));
+}
+
+// ═══════════════════════════════════════════
+// DESCARGAS — toBlob + ObjectURL
+// ═══════════════════════════════════════════
+function blobUrl(canvas) {
+  return new Promise(resolve => canvas.toBlob(blob => resolve(URL.createObjectURL(blob)), 'image/png'));
+}
+
+function triggerDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+}
+
+async function downloadSingle() {
+  if (!canvases.length) return;
+  try {
+    const url = await blobUrl(canvases[cur]);
+    const filename = `${activeBrandId}_${String(cur+1).padStart(2,'0')}.png`;
+    triggerDownload(url, filename);
+    toast('✅ Descargando PNG 1080×1350…');
+  } catch(e) {
+    toast('⚠️ No se pudo iniciar la descarga. Haz clic derecho sobre la vista previa → Guardar imagen.', 'error');
+  }
+}
+
+async function downloadZip() {
+  if (!canvases.length) return;
+  if (typeof JSZip === 'undefined') {
+    toast('⚠️ JSZip no está disponible en este entorno. Descarga las láminas individualmente con el botón PNG.', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-zip-dl');
+  btn.classList.add('loading');
+  btn.textContent = '⏳ Generando…';
+  try {
+    const zip = new JSZip();
+    const folder = zip.folder('carrusel');
+    for (let i = 0; i < canvases.length; i++) {
+      const blob = await new Promise(r => canvases[i].toBlob(r, 'image/png'));
+      folder.file(`${activeBrandId}_${String(i+1).padStart(2,'0')}.png`, blob);
+    }
+    const zipBlob = await zip.generateAsync({ type:'blob', compression:'DEFLATE', compressionOptions:{ level:6 } });
+    const url = URL.createObjectURL(zipBlob);
+    triggerDownload(url, `carrusel_${activeBrandId}.zip`);
+    toast(`✅ ZIP generado — ${canvases.length} láminas`);
+  } catch(e) {
+    toast('⚠️ Error al generar el ZIP: ' + e.message, 'error');
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = '📦 ZIP';
+  }
+}
+
+// ═══════════════════════════════════════════
+// FOTO & LOGO
+// ═══════════════════════════════════════════
+let pendingPhotoSlide = -1;
+function triggerPhotoUpload(i) {
+  pendingPhotoSlide = i;
+  let inp = document.getElementById('photo-file-input');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.type='file'; inp.accept='image/*'; inp.id='photo-file-input'; inp.hidden=true;
+    inp.onchange = onPhotoUpload;
+    document.body.appendChild(inp);
+  }
+  inp.click();
+}
+function onPhotoUpload() {
+  const file = this.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    slides[pendingPhotoSlide].photo = e.target.result;
+    slides[pendingPhotoSlide].photoOffsetY = 0;
+    slides[pendingPhotoSlide].photoScale = 1.0;
+    redrawSlide(pendingPhotoSlide).then(()=>{buildEditPanel(pendingPhotoSlide);toast('✅ Fotografía aplicada');});
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+}
+function removePhoto(i) { slides[i].photo=null; redrawSlide(i).then(()=>buildEditPanel(i)); }
+
+function triggerLogoUpload() { document.getElementById('logo-file').click(); }
+function onLogoUpload(inp) {
+  const file = inp.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    BRANDS[activeBrandId].logo = e.target.result;
+    document.getElementById('logo-preview-content').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain;border-radius:5px;">`;
+    renderAll().then(()=>toast('✅ Logotipo actualizado'));
+  };
+  reader.readAsDataURL(file);
+  inp.value = '';
+}
+
+// ═══════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════
+function switchMode(m) {
+  activeMode = m;
+  document.getElementById('pnl-auto').hidden = m!=='auto';
+  document.getElementById('pnl-manual').hidden = m!=='manual';
+  document.getElementById('btn-auto').classList.toggle('active',m==='auto');
+  document.getElementById('btn-manual').classList.toggle('active',m==='manual');
+}
+function pickCat(el, groupId) {
+  document.getElementById(groupId).parentElement.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function changeBrand(id) { activeBrandId=id; updateBrandUI(); if(slides.length>0) renderAll(); }
+function updateBrandUI() {
+  document.getElementById('custom-brand-fields').hidden = activeBrandId!=='custom';
+  const logo = BRANDS[activeBrandId].logo;
+  document.getElementById('logo-preview-content').innerHTML = logo ? `<img src="${logo}" style="width:100%;height:100%;object-fit:contain;border-radius:5px;">` : '🏷️';
+}
+function updateCustomBrand() {
+  BRANDS.custom.name = document.getElementById('custom-name').value||'Mi Marca';
+  BRANDS.custom.web = document.getElementById('custom-web').value||'@mimarca';
+  BRANDS.custom.cta = document.getElementById('custom-cta').value||'Síguenos para más';
+  BRANDS.custom.c.bg1 = document.getElementById('custom-color1').value;
+  BRANDS.custom.c.bg2 = document.getElementById('custom-color2').value;
+  BRANDS.custom.c.accent = BRANDS.custom.c.bg2;
+  BRANDS.custom.c.badge = BRANDS.custom.c.bg2;
+  if(slides.length>0) renderAll();
+}
+function go(d) { const n=cur+d; if(n>=0&&n<slides.length) showSlide(n); }
+function resetView() { slides=[];canvases=[];document.getElementById('empty').hidden=false;document.getElementById('viewer').hidden=true; }
+function copyAll() {
+  const txt = slides.map((sl,i)=>{
+    const p=[`─── Lámina ${i+1} ───`];
+    if(sl.label) p.push(`[${sl.label}]`);
+    if(sl.headline) p.push(sl.headline);
+    if(sl.bullets) sl.bullets.forEach(b=>p.push(`• ${b}`));
+    if(sl.body) p.push(sl.body);
+    return p.join('\n');
+  }).join('\n\n');
+  navigator.clipboard.writeText(txt)
+    .then(()=>toast('✅ Textos copiados'))
+    .catch(()=>toast('⚠️ No se pudo copiar'));
+}
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show'+(type?' '+type:'');
+  setTimeout(()=>el.classList.remove('show'),3200);
+}
+document.addEventListener('keydown', e => {
+  if(!slides.length||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='ArrowLeft') go(-1);
+  if(e.key==='ArrowRight') go(1);
+});
+loadPasarelaDemo();
+
+// ═══════════════════════════════════════════
+// AI CONFIG
+// ═══════════════════════════════════════════
+function toggleAIConfig() {
+  const body = document.getElementById('ai-config-body');
+  const arrow = document.getElementById('ai-config-arrow');
+  body.hidden = !body.hidden;
+  arrow.textContent = body.hidden ? '▼' : '▲';
+  if (!body.hidden) {
+    // Restaurar URL guardada
+    const saved = localStorage.getItem('carrusel_backend_url') || '';
+    if (saved) document.getElementById('backend-url').value = saved;
+  }
+}
+function saveBackendUrl() {
+  const url = document.getElementById('backend-url').value.trim();
+  if (url) localStorage.setItem('carrusel_backend_url', url);
+}
+function getBackendUrl() {
+  return (document.getElementById('backend-url').value.trim() ||
+    localStorage.getItem('carrusel_backend_url') || '').replace(/\/$/, '');
+}
+async function checkHealth() {
+  const base = getBackendUrl();
+  const statusEl = document.getElementById('ai-connection-status');
+  statusEl.style.display = 'flex';
+  statusEl.className = 'ai-status';
+  statusEl.textContent = '⏳ Comprobando…';
+  if (!base) {
+    statusEl.className = 'ai-status err';
+    statusEl.textContent = '⚠️ Ingresa la URL del backend primero.';
+    return;
+  }
+  try {
+    const r = await fetch(`${base}/api/health`, { signal: AbortSignal.timeout(8000) });
+    const data = await r.json();
+    if (data.status === 'ok') {
+      statusEl.className = 'ai-status ok';
+      statusEl.textContent = `✅ Conectado — ${data.service}`;
+    } else {
+      statusEl.className = 'ai-status err';
+      statusEl.textContent = '⚠️ El servidor respondió con estado inesperado.';
+    }
+  } catch(e) {
+    statusEl.className = 'ai-status err';
+    statusEl.textContent = '❌ No se pudo conectar. Verifica la URL y que el backend esté activo.';
+  }
+}
+
+// ═══════════════════════════════════════════
+// GENERAR IMÁGENES IA — gpt-image-1
+// ═══════════════════════════════════════════
+
+// Genera imagen para UNA lámina (slideIndex)
+async function generateImage(slideIndex) {
+  const base = getBackendUrl();
+  if (!base) {
+    if (document.getElementById('ai-config-body').hidden) toggleAIConfig();
+    toast('⚠️ Configura la URL del backend primero.', 'error');
+    return;
+  }
+  const sl = slides[slideIndex];
+  if (!sl) return;
+  if (!sl.imagePrompt) {
+    toast('⚠️ Esta lámina no tiene descripción de imagen. Genera el texto con IA primero.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById(`btn-img-gen-${slideIndex}`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Generando…'; }
+  toast('🎨 Generando imagen… puede tardar ~15–20 segundos.');
+
+  try {
+    const r = await fetch(`${base}/api/carousel/image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: sl.imagePrompt,
+        slideIndex,
+        brandCategory: sl.cat || 'publicidad',
+      }),
+      signal: AbortSignal.timeout(90000),
+    });
+
+    const data = await r.json();
+    if (!r.ok) {
+      toast('❌ ' + (data.error || 'Error generando imagen.'), 'error');
+      return;
+    }
+    if (!data.imageData) {
+      toast('❌ El servidor no devolvió imagen en base64.', 'error');
+      return;
+    }
+
+    // Aplicar como foto de fondo (base64 — sin CORS, funciona en Canvas y ZIP)
+    slides[slideIndex].photo = data.imageData;
+    slides[slideIndex].photoOffsetY = 0;
+    slides[slideIndex].photoScale = 1.0;
+    await redrawSlide(slideIndex);
+    buildEditPanel(slideIndex);
+    const cost = data.estimatedCost ? `~$${data.estimatedCost.toFixed(3)}` : '~$0.015';
+    toast(`✅ Imagen generada · ${cost} · ${data.model || 'gpt-image-1'}`);
+
+  } catch(e) {
+    if (e.name === 'TimeoutError' || e.name === 'AbortError') {
+      toast('⏱ Tiempo agotado. La generación puede tardar hasta 90 seg. Intenta de nuevo.', 'error');
+    } else {
+      toast('❌ ' + e.message, 'error');
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = slides[slideIndex]?.photo ? '↺ Regenerar imagen' : '🎨 Generar imagen IA';
+    }
+  }
+}
+
+// Genera imágenes para TODAS las láminas — pide confirmación de costo primero
+async function generateAllImages() {
+  const base = getBackendUrl();
+  if (!base) {
+    if (document.getElementById('ai-config-body').hidden) toggleAIConfig();
+    toast('⚠️ Configura la URL del backend primero.', 'error');
+    return;
+  }
+  const withPrompts = slides.filter(sl => sl.imagePrompt);
+  if (!withPrompts.length) {
+    toast('⚠️ Genera el texto con IA primero para obtener descripciones de imagen.', 'error');
+    return;
+  }
+
+  const n = withPrompts.length;
+  const cost = (n * 0.015).toFixed(2);
+  const confirmed = await confirmDialog(
+    '🎨 Generación de imágenes con IA',
+    `${n} láminas × $0.015 (gpt-image-1 · calidad media)\n\nCosto estimado: ~$${cost} USD\n\nSe generarán una por una.`,
+  );
+  if (!confirmed) return;
+
+  const btn = document.getElementById('btn-gen-all-imgs');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generando…'; }
+
+  let generated = 0;
+  for (let i = 0; i < slides.length; i++) {
+    if (!slides[i].imagePrompt) continue;
+    toast(`🎨 Generando imagen ${generated + 1} de ${n}…`);
+    try {
+      const r = await fetch(`${base}/api/carousel/image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: slides[i].imagePrompt,
+          slideIndex: i,
+          brandCategory: slides[i].cat || 'publicidad',
+        }),
+        signal: AbortSignal.timeout(90000),
+      });
+      const data = await r.json();
+      if (r.ok && data.imageData) {
+        slides[i].photo = data.imageData;
+        slides[i].photoOffsetY = 0;
+        slides[i].photoScale = 1.0;
+        await redrawSlide(i);
+        generated++;
+      } else {
+        toast(`⚠️ Lámina ${i + 1}: ${data.error || 'sin imagen'}`, 'error');
+      }
+    } catch(e) {
+      toast(`⚠️ Lámina ${i + 1}: ${e.message}`, 'error');
+    }
+    // Pausa entre imágenes para no saturar rate limit
+    if (i < slides.length - 1) await new Promise(res => setTimeout(res, 1200));
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '🎨 Imágenes'; }
+  if (cur < slides.length) buildEditPanel(cur);
+  const totalCost = (generated * 0.015).toFixed(2);
+  toast(`✅ ${generated} imágenes generadas · ~$${totalCost} USD total`);
+}
+
+// Modal de confirmación — devuelve Promise<boolean>
+function confirmDialog(title, message) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <div style="font-size:28px;margin-bottom:10px;">💰</div>
+        <h3>${title}</h3>
+        <p>${message}</p>
+        <div class="confirm-row">
+          <button class="confirm-cancel" id="_cc">Cancelar</button>
+          <button class="confirm-ok" id="_co">Sí, generar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const cleanup = ok => { overlay.remove(); resolve(ok); };
+    overlay.querySelector('#_co').onclick = () => cleanup(true);
+    overlay.querySelector('#_cc').onclick = () => cleanup(false);
+    overlay.onclick = e => { if (e.target === overlay) cleanup(false); };
+  });
+}
+
+// ═══════════════════════════════════════════
+// GENERAR CON IA
+// ═══════════════════════════════════════════
+async function generateWithAI(mode) {
+  const base = getBackendUrl();
+  if (!base) {
+    // Abrir config si está cerrada
+    const body = document.getElementById('ai-config-body');
+    if (body.hidden) toggleAIConfig();
+    toast('⚠️ Configura la URL del backend antes de usar la IA.', 'error');
+    return;
+  }
+
+  const brand = BRANDS[activeBrandId];
+  let topic, count, cat, tone, audience;
+
+  if (mode === 'auto') {
+    topic = document.getElementById('a-text').value.trim();
+    if (topic.length < 20) { toast('⚠️ Pega el texto del artículo antes de usar la IA.', 'error'); return; }
+    count = parseInt(document.getElementById('a-count').value) || 5;
+    cat = getActiveCat('a-cats');
+    tone = 'Profesional'; audience = 'General';
+  } else {
+    topic = document.getElementById('m-topic').value.trim();
+    if (topic.length < 5) { toast('⚠️ Escribe el tema del carrusel.', 'error'); document.getElementById('m-topic').focus(); return; }
+    count = parseInt(document.getElementById('m-count').value) || 5;
+    cat = getActiveCat('m-cats');
+    tone = document.getElementById('m-tone').value;
+    audience = document.getElementById('m-aud').value;
+  }
+
+  const btnId = mode === 'auto' ? 'btn-ai-auto' : 'btn-ai-manual';
+  const btn = document.getElementById(btnId);
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generando con IA…';
+
+  try {
+    const r = await fetch(`${base}/api/carousel/text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        brand: activeBrandId,
+        brandName: brand.name,
+        category: cat,
+        topic,
+        slideCount: count,
+        tone,
+        audience,
+        cta: brand.cta,
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+
+    const data = await r.json();
+
+    if (!r.ok) {
+      toast('❌ ' + (data.error || 'Error del servidor.'), 'error');
+      return;
+    }
+
+    if (!data.slides || !data.slides.length) {
+      toast('❌ La IA no devolvió diapositivas. Intenta de nuevo.', 'error');
+      return;
+    }
+
+    // Aplicar categoría y foto a cada slide
+    slides = data.slides.map(sl => ({ ...sl, cat, photo: null }));
+    await renderAll();
+    toast(`✅ IA generó ${slides.length} diapositivas · Modelo: ${data.model}`);
+
+  } catch(e) {
+    if (e.name === 'TimeoutError' || e.name === 'AbortError') {
+      toast('⏱ La solicitud tardó demasiado. Verifica que el backend esté activo.', 'error');
+    } else {
+      toast('❌ Error de conexión: ' + e.message, 'error');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Generar con IA';
+  }
+}
+</script>
