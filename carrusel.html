@@ -228,6 +228,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
           </div>
         </div>
         <input type="file" id="logo-file" accept="image/*" hidden onchange="onLogoUpload(this)">
+        <button class="btn-sm" onclick="openProfileEditor()" style="margin-top:6px;width:100%;background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px dashed var(--accent);color:var(--accent);font-size:11px;">
+          🏷️ Ver / editar perfil de IA de esta marca
+        </button>
         <div id="custom-brand-fields" hidden>
           <div class="row2">
             <div class="form-group"><label>Nombre</label><input type="text" id="custom-name" placeholder="Mi Marca" oninput="updateCustomBrand()"></div>
@@ -382,6 +385,174 @@ const BRANDS = {
   custom:    { name:'Mi Marca', web:'@mimarca', cta:'Síguenos para más',
     c:{ bg1:'#111827', bg2:'#1F2D54', accent:'#818CF8', text:'#FFFFFF', sub:'#C4CCF0', badge:'#818CF8', badgeTxt:'#fff' }, logo:null },
 };
+
+// ═══════════════════════════════════════════
+// BRAND AI PROFILES — identidad de marca para prompts de texto e imagen
+// ═══════════════════════════════════════════
+const DEFAULT_BRAND_PROFILES = {
+  pasarela: {
+    businessDescription: 'Escuela profesional de modelaje, pasarela, fotopose, expresión corporal e imagen personal, ubicada en el área de Dallas, Texas.',
+    sector: 'Moda, modelaje y desarrollo personal',
+    audience: 'Jóvenes y adultos de 15–45 años interesados en modelaje profesional, fotografía de moda, imagen personal y desarrollo de confianza.',
+    services: 'Clases de pasarela, fotopose, expresión corporal, imagen personal, maquillaje artístico, sesiones fotográficas profesionales, talleres de confianza y presencia escénica.',
+    communicationStyle: 'Aspiracional, elegante y motivador. Destaca la transformación personal, la confianza y el mundo de la moda profesional.',
+    visualIdentity: 'Paleta dorada, negra y vino tinto. Estética de alta costura, elegante, sofisticada y profesional.',
+    photoTypes: 'Modelos en pasarela de moda, sesiones fotográficas de moda, backstage de fashion show, poses profesionales en estudio con iluminación dramática, telas lujosas y accesorios de moda, luces de pasarela, backstage elegante, mujeres y hombres con ropa de moda.',
+    avoidElements: 'Aulas escolares tradicionales, pizarras, escritorios de colegio, libros de texto, uniformes escolares, contextos universitarios genéricos, niños estudiando en clase.',
+    verifiedInfo: 'Escuela ubicada en el área de Dallas, Texas. Programas de modelaje profesional. Web: pasarelastudio.com.',
+    restrictions: 'No inventar precios exactos, fechas de inscripción específicas, ni nombres de programas o instructores sin confirmación. Usar frases como "solicita información" o "descubre nuestros programas" en lugar de afirmaciones sobre disponibilidad o costo.',
+  },
+  rocimar: {
+    businessDescription: 'Canal de noticias y análisis periodístico conducido por Rocimar Morales, enfocado en la comunidad latina.',
+    sector: 'Medios de comunicación, periodismo digital',
+    audience: 'Comunidad latina en Estados Unidos interesada en noticias actuales, política y cultura.',
+    services: 'Cobertura de noticias, análisis político, reportajes de actualidad, entrevistas.',
+    communicationStyle: 'Informativo, neutral y profesional. Basado estrictamente en hechos verificados.',
+    visualIdentity: 'Paleta rojo, azul marino y blanco. Estética periodística profesional.',
+    photoTypes: 'Estudios de noticias, micrófonos, pantallas informativas, ciudades, eventos públicos, personas diversas en contextos noticiosos.',
+    avoidElements: 'Imágenes sensacionalistas, montajes, contenido no verificado, símbolos partidistas.',
+    verifiedInfo: 'Canal digital. @RocimarNoticias.',
+    restrictions: 'No inventar hechos, cifras, declaraciones ni fechas. Usar únicamente información proporcionada en el texto del artículo.',
+  },
+  fancy: {
+    businessDescription: 'Marca de moda y estilo personal de Roxette para mujeres latinas.',
+    sector: 'Moda, estilo personal, belleza',
+    audience: 'Mujeres latinas de 20–45 años interesadas en moda, tendencias y estilo personal.',
+    services: 'Asesoría de imagen, looks de moda, tendencias, estilo personal.',
+    communicationStyle: 'Sofisticado, femenino, aspiracional y cercano.',
+    visualIdentity: 'Paleta rosa, morado y dorado. Estética glamurosa, femenina y elegante.',
+    photoTypes: 'Moda femenina, accesorios de lujo, looks elegantes, sesiones fotográficas de moda, detalles de telas y joyería.',
+    avoidElements: 'Imágenes genéricas sin estilo definido, fondos neutros sin producción.',
+    verifiedInfo: '@FancyByRoxette.',
+    restrictions: 'No inventar productos disponibles, precios ni fechas de lanzamiento sin confirmación.',
+  },
+  amares: {
+    businessDescription: 'Marca de contenido inspiracional sobre amor, fe, relaciones y valores espirituales.',
+    sector: 'Contenido espiritual e inspiracional',
+    audience: 'Comunidad latina interesada en fe, familia, amor y valores.',
+    services: 'Contenido inspiracional, mensajes de amor y fe, reflexiones.',
+    communicationStyle: 'Cálido, espiritual, esperanzador y amoroso.',
+    visualIdentity: 'Paleta rosa suave, morado y blanco. Estética suave, amorosa y serena.',
+    photoTypes: 'Parejas en momentos tiernos, familias, luz natural suave, flores, naturaleza, símbolos de amor y fe.',
+    avoidElements: 'Imágenes oscuras, conflictivas o divisivas.',
+    verifiedInfo: '@AmarEs.',
+    restrictions: 'Mantener mensajes positivos. No inventar testimonios ni promesas específicas.',
+  },
+  maravillas: {
+    businessDescription: 'Ministerio cristiano de contenido sobre milagros, fe y esperanza para la comunidad latina.',
+    sector: 'Contenido cristiano y espiritual',
+    audience: 'Comunidad latina cristiana interesada en fe, Biblia y milagros.',
+    services: 'Mensajes bíblicos, contenido de fe, testimonios, reflexiones espirituales.',
+    communicationStyle: 'Inspirador, esperanzador, bíblico y lleno de fe.',
+    visualIdentity: 'Paleta azul marino, dorado y blanco. Estética celestial, majestuosa y luminosa.',
+    photoTypes: 'Cielos con luz dorada, iglesias majestuosas, Biblia abierta, naturaleza imponente, cruces, luz divina.',
+    avoidElements: 'Imágenes controversiales, no religiosas o contrarias a valores cristianos.',
+    verifiedInfo: '@MaravillasDelReino.',
+    restrictions: 'No inventar testimonios, milagros específicos ni promesas de resultados.',
+  },
+  latina768: {
+    businessDescription: 'Agencia de servicios para la comunidad latina en Dallas: seguros de vida y salud, bienes raíces e inversiones, y marketing digital.',
+    sector: 'Servicios profesionales para la comunidad latina',
+    audience: 'Familias y emprendedores latinos en Texas y Estados Unidos.',
+    services: 'Seguros de vida y salud, bienes raíces, marketing digital, generación de leads, consultoría empresarial.',
+    communicationStyle: 'Profesional, confiable, cercano y orientado a soluciones para la comunidad latina.',
+    visualIdentity: 'Paleta naranja, azul marino y blanco. Estética profesional, moderna y confiable.',
+    photoTypes: 'Familias latinas felices, hogares modernos, apretones de mano profesionales, oficinas, documentos, llaves de casa, mapas de Texas.',
+    avoidElements: 'Imágenes estereotipadas, genéricas o de baja calidad.',
+    verifiedInfo: 'latina768.com. Área de Dallas, Texas.',
+    restrictions: 'No inventar coberturas específicas, tasas de seguros, disponibilidad de propiedades ni precios sin confirmación.',
+  },
+  custom: {
+    businessDescription: '',
+    sector: '',
+    audience: '',
+    services: '',
+    communicationStyle: '',
+    visualIdentity: '',
+    photoTypes: '',
+    avoidElements: '',
+    verifiedInfo: '',
+    restrictions: '',
+  },
+};
+
+// ── Carga / guarda perfiles en localStorage ────────────────────────────────
+function loadBrandProfiles() {
+  try {
+    const saved = localStorage.getItem('carrusel_brand_profiles');
+    if (!saved) return JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES));
+    const parsed = JSON.parse(saved);
+    // Merge: defaults primero, encima los guardados (nuevas marcas se agregan automáticamente)
+    const merged = JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES));
+    for (const id of Object.keys(merged)) {
+      if (parsed[id]) Object.assign(merged[id], parsed[id]);
+    }
+    return merged;
+  } catch { return JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES)); }
+}
+function saveBrandProfiles(profiles) {
+  try { localStorage.setItem('carrusel_brand_profiles', JSON.stringify(profiles)); } catch {}
+}
+let brandProfiles = loadBrandProfiles();
+
+function getBrandProfile(brandId) {
+  return brandProfiles[brandId] || brandProfiles.custom || {};
+}
+
+// ── Editor de perfil de marca ──────────────────────────────────────────────
+function openProfileEditor() {
+  const id = activeBrandId;
+  const p = getBrandProfile(id);
+  const fields = [
+    { key: 'businessDescription', label: 'Descripción del negocio', rows: 3 },
+    { key: 'sector',              label: 'Sector e industria', rows: 1 },
+    { key: 'audience',            label: 'Público objetivo', rows: 2 },
+    { key: 'services',            label: 'Servicios y temas principales', rows: 2 },
+    { key: 'communicationStyle',  label: 'Estilo de comunicación', rows: 2 },
+    { key: 'visualIdentity',      label: 'Identidad visual (colores, estética)', rows: 2 },
+    { key: 'photoTypes',          label: 'Tipos de fotografía recomendados', rows: 3 },
+    { key: 'avoidElements',       label: '⚠️ Elementos visuales a EVITAR', rows: 2 },
+    { key: 'verifiedInfo',        label: 'Información comercial verificada', rows: 2 },
+    { key: 'restrictions',        label: '🚫 Restricciones (qué no inventar)', rows: 2 },
+  ];
+  const html = fields.map(f => `
+    <div class="form-group">
+      <label style="font-weight:700">${f.label}</label>
+      <textarea id="pf-${f.key}" rows="${f.rows}" style="font-size:12px">${(p[f.key]||'').replace(/</g,'&lt;')}</textarea>
+    </div>`).join('');
+
+  document.getElementById('profile-editor-brand-name').textContent = BRANDS[id]?.name || id;
+  document.getElementById('profile-editor-fields').innerHTML = html;
+  document.getElementById('profile-editor-modal').style.display = 'flex';
+}
+
+function closeProfileEditor() {
+  document.getElementById('profile-editor-modal').style.display = 'none';
+}
+
+function saveProfile() {
+  const id = activeBrandId;
+  const keys = ['businessDescription','sector','audience','services','communicationStyle','visualIdentity','photoTypes','avoidElements','verifiedInfo','restrictions'];
+  const updated = {};
+  for (const k of keys) {
+    const el = document.getElementById('pf-' + k);
+    updated[k] = el ? el.value.trim() : '';
+  }
+  if (!brandProfiles[id]) brandProfiles[id] = {};
+  Object.assign(brandProfiles[id], updated);
+  saveBrandProfiles(brandProfiles);
+  closeProfileEditor();
+  toast('✅ Perfil de marca guardado.');
+}
+
+function resetProfileToDefault() {
+  const id = activeBrandId;
+  if (!confirm(`¿Restaurar el perfil de "${BRANDS[id]?.name || id}" a los valores predeterminados?`)) return;
+  brandProfiles[id] = JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES[id] || {}));
+  saveBrandProfiles(brandProfiles);
+  openProfileEditor(); // recarga el modal con defaults
+  toast('↺ Perfil restaurado a valores predeterminados.');
+}
 
 // ═══════════════════════════════════════════
 // STATE
@@ -1169,6 +1340,7 @@ async function generateImage(slideIndex) {
         prompt: sl.imagePrompt,
         slideIndex,
         brandCategory: sl.cat || 'publicidad',
+        brandProfile: getBrandProfile(activeBrandId),
       }),
       signal: AbortSignal.timeout(90000),
     });
@@ -1243,6 +1415,7 @@ async function generateAllImages() {
           prompt: slides[i].imagePrompt,
           slideIndex: i,
           brandCategory: slides[i].cat || 'publicidad',
+          brandProfile: getBrandProfile(activeBrandId),
         }),
         signal: AbortSignal.timeout(90000),
       });
@@ -1341,6 +1514,7 @@ async function generateWithAI(mode) {
         tone,
         audience,
         cta: brand.cta,
+        brandProfile: getBrandProfile(activeBrandId),
       }),
       signal: AbortSignal.timeout(30000),
     });
@@ -1374,3 +1548,41 @@ async function generateWithAI(mode) {
   }
 }
 </script>
+
+<!-- ═══ MODAL: Perfil de marca IA ═══════════════════════════════════════ -->
+<div id="profile-editor-modal" style="display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+    <!-- Header -->
+    <div style="padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-size:14px;font-weight:800;letter-spacing:-.2px;">🏷️ Perfil de IA</div>
+        <div id="profile-editor-brand-name" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
+      </div>
+      <button onclick="closeProfileEditor()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:4px;">×</button>
+    </div>
+    <!-- Info box -->
+    <div style="margin:12px 20px 0;padding:10px 12px;border-radius:8px;font-size:11px;line-height:1.5;
+      background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);">
+      Este perfil se combina automáticamente con el texto que escribas y la categoría seleccionada para generar textos e imágenes contextualizados a esta marca.
+    </div>
+    <!-- Scrollable fields -->
+    <div id="profile-editor-fields" style="padding:16px 20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:4px;"></div>
+    <!-- Footer buttons -->
+    <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button onclick="resetProfileToDefault()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);
+        background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+        ↺ Restaurar predeterminado
+      </button>
+      <button onclick="closeProfileEditor()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);
+        background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+        Cancelar
+      </button>
+      <button onclick="saveProfile()" style="padding:8px 18px;border-radius:8px;border:none;
+        background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+        💾 Guardar perfil
+      </button>
+    </div>
+  </div>
+</div>
