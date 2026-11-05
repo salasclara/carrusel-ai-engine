@@ -82,7 +82,7 @@ REGLAS ESTRICTAS:
 
 // ─── POST /api/carousel/text ─────────────────────────────────────────────
 app.post('/api/carousel/text', textLimiter, async (req, res) => {
-  const { brand, brandName, category, topic, slideCount = 5, tone = 'Profesional', audience = 'General', cta } = req.body;
+  const { brand, brandName, category, topic, slideCount = 5, tone = 'Profesional', audience = 'General', cta, brandProfile } = req.body;
 
   if (!topic || topic.trim().length < 5) {
     return res.status(400).json({ error: 'El campo "topic" es obligatorio y debe tener al menos 5 caracteres.' });
@@ -95,10 +95,28 @@ app.post('/api/carousel/text', textLimiter, async (req, res) => {
   const catInstructions = CAT_INSTRUCTIONS[category] || CAT_INSTRUCTIONS.publicidad;
   const slideTypesDesc = Array.from({ length: count }, (_, i) => SLIDE_TYPES[i + 1] || 'content').join(', ');
 
+  // Construir bloque de perfil de marca si viene del frontend
+  const brandProfileBlock = brandProfile ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PERFIL DE IDENTIDAD DE MARCA (Brand AI Profile)
+Usa esta información para contextualizar TODAS las diapositivas:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Negocio: ${brandProfile.businessDescription || ''}
+Sector: ${brandProfile.sector || ''}
+Público objetivo: ${brandProfile.audience || ''}
+Servicios / temas principales: ${brandProfile.services || ''}
+Estilo de comunicación: ${brandProfile.communicationStyle || ''}
+Identidad visual: ${brandProfile.visualIdentity || ''}
+Tipos de fotografía recomendada: ${brandProfile.photoTypes || ''}
+Elementos visuales a EVITAR: ${brandProfile.avoidElements || ''}
+Información comercial verificada: ${brandProfile.verifiedInfo || ''}
+RESTRICCIONES EDITORIALES CRÍTICAS: ${brandProfile.restrictions || ''}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━` : '';
+
   const systemPrompt = `Eres un experto en comunicación visual para Instagram y Facebook. Generas contenido profesional en español para carruseles de ${count} diapositivas.
 
 ${catInstructions}
-
+${brandProfileBlock}
 MARCA: ${brandName || brand}
 CATEGORÍA: ${category}
 TONO: ${tone}
@@ -188,17 +206,27 @@ Devuelve exactamente este JSON (${count} objetos en el array):
 });
 
 // ─── POST /api/carousel/image ─────────────────────────────────────────────
-// v1.6 — gpt-image-2 · 1024×1024 · b64_json nativo
-// dall-e-2 y dall-e-3 retirados el 12 mayo 2026.
-// gpt-image-2 devuelve b64_json directamente; no hay URL temporal que descargar.
+// v1.7 — gpt-image-2 · 1024×1024 · b64_json nativo · Brand AI Profile support
 app.post('/api/carousel/image', imageLimiter, async (req, res) => {
-  const { prompt, slideIndex = 0, brandCategory = 'editorial' } = req.body;
+  const { prompt, slideIndex = 0, brandCategory = 'editorial', brandProfile } = req.body;
 
   if (!prompt || prompt.trim().length < 10) {
     return res.status(400).json({ error: 'El campo "prompt" es obligatorio.' });
   }
 
-  const safePrompt = `${prompt.slice(0, 900)}. Editorial photography style, professional, cinematic lighting, high quality. NO text, NO logos, NO typography, NO watermarks. Square composition.`;
+  // Construir contexto de marca para enriquecer el prompt visual
+  let brandContext = '';
+  if (brandProfile) {
+    const parts = [];
+    if (brandProfile.businessDescription) parts.push(`Brand: ${brandProfile.businessDescription}`);
+    if (brandProfile.sector)              parts.push(`Sector: ${brandProfile.sector}`);
+    if (brandProfile.visualIdentity)      parts.push(`Visual style: ${brandProfile.visualIdentity}`);
+    if (brandProfile.photoTypes)          parts.push(`Recommended visuals: ${brandProfile.photoTypes}`);
+    if (brandProfile.avoidElements)       parts.push(`MUST AVOID in image: ${brandProfile.avoidElements}`);
+    brandContext = parts.join('. ') + '. ';
+  }
+
+  const safePrompt = `${brandContext}${prompt.slice(0, 700)}. Professional photography, cinematic lighting, high quality. NO text, NO logos, NO typography, NO watermarks. Square composition.`;
 
   try {
     const response = await openai.images.generate({
@@ -239,7 +267,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.6.0',
+    version: '1.7.0',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
