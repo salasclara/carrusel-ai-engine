@@ -184,9 +184,9 @@ Devuelve exactamente este JSON (${count} objetos en el array):
 });
 
 // ─── POST /api/carousel/image ─────────────────────────────────────────────
-// Etapa B v1.2 — dall-e-3 · 1024×1792 · standard quality · b64_json response
-// gpt-image-1 requiere verificación de organización en OpenAI; dall-e-3 funciona
-// con cuentas estándar. response_format: 'b64_json' evita CORS con Canvas.
+// Etapa B v1.4 — dall-e-2 · 1024×1024 · b64_json response
+// dall-e-3 y gpt-image-1 fueron retirados o requieren verificación especial.
+// dall-e-2 está disponible en cuentas estándar y soporta response_format: b64_json.
 app.post('/api/carousel/image', imageLimiter, async (req, res) => {
   const { prompt, slideIndex = 0, brandCategory = 'editorial' } = req.body;
 
@@ -194,41 +194,29 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
     return res.status(400).json({ error: 'El campo "prompt" es obligatorio.' });
   }
 
-  // dall-e-3 reescribe el prompt internamente; aun así especificamos la intención visual.
-  const safePrompt = `${prompt.slice(0, 900)}. Editorial photography style, professional, cinematic lighting, high quality. NO text overlay, NO logos, NO typography, NO watermarks. Vertical portrait orientation.`;
+  const safePrompt = `${prompt.slice(0, 900)}. Editorial photography style, professional, cinematic lighting, high quality. NO text, NO logos, NO typography, NO watermarks. Square composition.`;
 
   try {
     const response = await openai.images.generate({
-      model: 'dall-e-3',
+      model: 'dall-e-2',
       prompt: safePrompt,
       n: 1,
-      size: '1024x1792',   // portrait disponible en dall-e-3 (ratio ~9:16)
-      quality: 'standard', // standard=$0.040 · hd=$0.080 por imagen
-      // response_format omitido: dall-e-3 ya no acepta ese parámetro → devuelve URL
+      size: '1024x1024',         // dall-e-2: solo cuadrado; Canvas lo recortará a 4:5
+      response_format: 'b64_json', // dall-e-2 sí soporta este parámetro
     });
 
-    const imageUrl = response.data[0].url;
-    if (!imageUrl) {
-      return res.status(502).json({ error: 'La API no devolvió URL de imagen.' });
+    const b64 = response.data[0].b64_json;
+    if (!b64) {
+      return res.status(502).json({ error: 'La API no devolvió imagen en base64.' });
     }
-
-    // Descargamos la imagen en el backend (Node no tiene restricción CORS)
-    // y la convertimos a base64 para que el frontend la dibuje en Canvas sin problemas.
-    const imgResp = await fetch(imageUrl);
-    if (!imgResp.ok) {
-      return res.status(502).json({ error: 'No se pudo descargar la imagen desde OpenAI.' });
-    }
-    const arrayBuffer = await imgResp.arrayBuffer();
-    const b64 = Buffer.from(arrayBuffer).toString('base64');
-    const contentType = imgResp.headers.get('content-type') || 'image/png';
 
     return res.json({
-      imageData: `data:${contentType};base64,${b64}`,
+      imageData: `data:image/png;base64,${b64}`,
       slideIndex,
-      model: 'dall-e-3',
+      model: 'dall-e-2',
       quality: 'standard',
-      estimatedCost: 0.040,
-      note: 'Imagen descargada en backend y convertida a base64 — compatible con Canvas/ZIP.',
+      estimatedCost: 0.020,
+      note: 'Imagen incluida como base64 — compatible con Canvas/ZIP.',
     });
 
   } catch (err) {
@@ -247,7 +235,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.3.0',
+    version: '1.4.0',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
