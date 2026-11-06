@@ -182,7 +182,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
       </div>
     </div>
     <div class="hdr-right">
-      <span class="demo-badge">⚡ Modo demostración — sin IA conectada</span>
+      <span class="demo-badge" id="ai-mode-badge">⚪ IA sin comprobar</span>
       <div class="mode-toggle">
         <button class="mode-btn active" id="btn-auto" onclick="switchMode('auto')">⚡ Automática</button>
         <button class="mode-btn" id="btn-manual" onclick="switchMode('manual')">✏️ Manual</button>
@@ -398,11 +398,11 @@ const DEFAULT_BRAND_PROFILES = {
     sector: 'Moda, modelaje y desarrollo personal',
     audience: 'Jóvenes y adultos de 15–45 años interesados en modelaje profesional, fotografía de moda, imagen personal y desarrollo de confianza.',
     services: 'Temas de interés: pasarela, fotopose, expresión corporal e imagen personal. Confirmar qué actividades se ofrecen antes de publicitarlas.',
-    communicationStyle: 'Aspiracional, elegante y motivador. Destaca la transformación personal, la confianza y el mundo de la moda profesional.',
+    communicationStyle: 'Editorial de revista de moda: concreto, elegante, humano y visual. Evita frases motivacionales genéricas y promesas de transformación.',
     visualIdentity: 'Paleta dorada, negra y vino tinto. Estética de alta costura, elegante, sofisticada y profesional.',
     photoTypes: 'Modelos en pasarela de moda, sesiones fotográficas de moda, backstage de fashion show, poses profesionales en estudio con iluminación dramática, telas lujosas y accesorios de moda, luces de pasarela, backstage elegante, mujeres y hombres con ropa de moda.',
     avoidElements: 'Aulas escolares tradicionales, pizarras, escritorios de colegio, libros de texto, uniformes escolares, contextos universitarios genéricos, niños estudiando en clase.',
-    verifiedInfo: 'Marca: Pasarela Studio Internacional. No se han confirmado cursos incluidos, ubicación, acreditaciones ni promociones.',
+    verifiedInfo: 'Marca Pasarela Studio Internacional, vinculada a moda y modelaje. Solo usar las inscripciones abiertas cuando se indique en el tema; no se han confirmado servicios específicos, certificaciones ni oportunidades de casting.',
     restrictions: 'No inventar precios exactos, fechas de inscripción específicas, ni nombres de programas o instructores sin confirmación. Usar frases como "solicita información" o "descubre nuestros programas" en lugar de afirmaciones sobre disponibilidad o costo.',
   },
   rocimar: {
@@ -482,7 +482,7 @@ const DEFAULT_BRAND_PROFILES = {
 // ── Carga / guarda perfiles en localStorage ────────────────────────────────
 function loadBrandProfiles() {
   try {
-    const saved = localStorage.getItem('carrusel_brand_profiles');
+    const saved = localStorage.getItem('carrusel_brand_profiles_v2');
     if (!saved) return JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES));
     const parsed = JSON.parse(saved);
     // Merge: defaults primero, encima los guardados (nuevas marcas se agregan automáticamente)
@@ -494,7 +494,7 @@ function loadBrandProfiles() {
   } catch { return JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES)); }
 }
 function saveBrandProfiles(profiles) {
-  try { localStorage.setItem('carrusel_brand_profiles', JSON.stringify(profiles)); } catch {}
+  try { localStorage.setItem('carrusel_brand_profiles_v2', JSON.stringify(profiles)); } catch {}
 }
 let brandProfiles = loadBrandProfiles();
 
@@ -1326,13 +1326,19 @@ async function checkHealth() {
     if (data.status === 'ok') {
       statusEl.className = 'ai-status ok';
       statusEl.textContent = `✅ Conectado — ${data.service}`;
+      const badge = document.getElementById('ai-mode-badge');
+      if (badge) badge.textContent = '✅ IA conectada';
     } else {
       statusEl.className = 'ai-status err';
       statusEl.textContent = '⚠️ El servidor respondió con estado inesperado.';
+      const badge = document.getElementById('ai-mode-badge');
+      if (badge) badge.textContent = '⚠️ IA no confirmada';
     }
   } catch(e) {
     statusEl.className = 'ai-status err';
     statusEl.textContent = '❌ No se pudo conectar. Verifica la URL y que el backend esté activo.';
+    const badge = document.getElementById('ai-mode-badge');
+    if (badge) badge.textContent = '❌ IA sin conexión';
   }
 }
 

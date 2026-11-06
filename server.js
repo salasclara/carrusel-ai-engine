@@ -82,8 +82,7 @@ Cada lámina tiene una función publicitaria específica. Respeta este orden:
 LÁMINA 1 — GANCHO (type: "cover")
 Función: Captar atención inmediata. Interrumpir el scroll en 2 segundos.
 Regla: El headline debe ser una frase corta (máx. 7 palabras), impactante, que genere curiosidad o deseo instantáneo.
-NO describas el negocio todavía. NO uses el nombre de la marca en el titular.
-El gancho debe hablar de TRANSFORMACIÓN, POSIBILIDAD o IDENTIDAD.
+El gancho debe aludir inequívocamente al sector y al tema, sin depender de frases motivacionales genéricas.
 
 LÁMINA 2 — INTERÉS / DESEO (type: "content")
 Función: Despertar el deseo de pertenecer, transformarse o lograr algo.
@@ -103,7 +102,7 @@ Evita el tono corporativo. Esta lámina debe sonar humana.
 LÁMINA 5 — CIERRE / CTA (type: "cta")
 Función: Provocar la acción inmediata. No dejar dudas sobre el siguiente paso.
 Regla: Clara, directa, sin rodeos. Incluye el CTA oficial de la marca en el body.
-El headline puede crear urgencia (cupos, momento, oportunidad).
+No inventes urgencia, cupos, fechas ni disponibilidad.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 REGLAS DE REDACCIÓN PUBLICITARIA (OBLIGATORIAS)
@@ -303,7 +302,7 @@ Devuelve exactamente este JSON (${count} objetos en el array):
 
     // Normalizar y validar cada slide
     const slides = parsed.slides.slice(0, count).map((sl, i) => ({
-      type: sl.type || SLIDE_TYPES[i + 1] || 'content',
+      type: i === 0 ? 'cover' : i === count - 1 ? 'cta' : (category === 'publicidad' && i === 2 ? 'bullets' : 'content'),
       label: (sl.label || '').toUpperCase().slice(0, 50),
       headline: (sl.headline || '').slice(0, 150),
       body: sl.body || null,
@@ -312,6 +311,12 @@ Devuelve exactamente este JSON (${count} objetos en el array):
       photo: null,
     }));
 
+    // Las afirmaciones comerciales no verificadas se rechazan antes de publicarse.
+    const claimPattern = /cupos limitados|últimos lugares|garantiz(?:amos|ado)|certificad[oa]s?|oportunidades? (?:de|para) (?:casting|desfiles?)|asesor[ií]a personalizada|sesiones? fotogr[aá]ficas? incluidas?|gratis|sin costo adicional/i;
+    const approvedFacts = String(topic || '') + ' ' + String(brandProfile?.verifiedInfo || '');
+    if (slides.some(sl => claimPattern.test([sl.headline,sl.body,...(sl.bullets || [])].filter(Boolean).join(' ')) && !claimPattern.test(approvedFacts))) {
+      return res.status(422).json({error:'La IA propuso beneficios o afirmaciones no confirmados. Amplía la información verificada o vuelve a generar.'});
+    }
     if (slides.some(sl => !String(sl.headline || '').trim())) return res.status(502).json({error:'La IA devolvió un titular vacío.'});
     return res.json({
       slides,
