@@ -322,6 +322,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
       <button class="btn-gen" style="margin-top:10px;background:var(--surface);color:var(--accent);border:1.5px solid var(--accent);" onclick="loadPasarelaDemo()">
         🎯 Cargar demo — Pasarela Studio
       </button>
+      <button class="btn-gen" id="btn-lock-texts" style="margin-top:8px;background:var(--surface);color:#aaa;border:1.5px solid #555;font-size:13px;" onclick="toggleLockTexts()" title="Bloquea los textos actuales para que no sean reemplazados al regenerar">
+        🔓 Textos no bloqueados
+      </button>
     </div>
 
     <!-- RIGHT: Preview -->
@@ -558,6 +561,23 @@ function resetProfileToDefault() {
 // STATE
 // ═══════════════════════════════════════════
 let slides = [], canvases = [], cur = 0, activeBrandId = 'pasarela', activeMode = 'auto';
+let textsLocked = false;
+
+function toggleLockTexts() {
+  textsLocked = !textsLocked;
+  const btn = document.getElementById('btn-lock-texts');
+  if (textsLocked) {
+    btn.textContent = '🔒 Textos BLOQUEADOS (aprobados)';
+    btn.style.color = '#d4a843';
+    btn.style.borderColor = '#d4a843';
+    toast('🔒 Textos bloqueados. Las imágenes se generarán sin reemplazar el contenido.', 'info');
+  } else {
+    btn.textContent = '🔓 Textos no bloqueados';
+    btn.style.color = '#aaa';
+    btn.style.borderColor = '#555';
+    toast('🔓 Textos desbloqueados. Se reemplazarán al generar con IA.', 'info');
+  }
+}
 const W = 1080, H = 1350, PAD = 72;
 
 // ═══════════════════════════════════════════
@@ -1538,10 +1558,21 @@ async function generateWithAI(mode) {
       return;
     }
 
-    // Aplicar categoría y foto a cada slide
-    slides = data.slides.map(sl => ({ ...sl, cat, photo: null }));
-    await renderAll();
-    toast(`✅ IA generó ${slides.length} diapositivas · Modelo: ${data.model}`);
+    if (textsLocked && slides.length > 0) {
+      // Textos bloqueados: solo actualiza imagePrompt, conserva todos los textos existentes
+      data.slides.forEach((incoming, i) => {
+        if (slides[i]) {
+          slides[i].imagePrompt = incoming.imagePrompt; // actualiza solo el concepto visual
+        }
+      });
+      await renderAll();
+      toast(`🔒 Textos bloqueados — solo se actualizaron los conceptos visuales (${data.slides.length} láminas)`);
+    } else {
+      // Normal: reemplaza todo el contenido
+      slides = data.slides.map(sl => ({ ...sl, cat, photo: null }));
+      await renderAll();
+      toast(`✅ IA generó ${slides.length} diapositivas · Modelo: ${data.model}`);
+    }
 
   } catch(e) {
     if (e.name === 'TimeoutError' || e.name === 'AbortError') {
