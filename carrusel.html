@@ -686,7 +686,7 @@ async function layoutPhotoMode(ctx, sl, brand, idx, total, c, cat) {
     yBottom -= 20;
   }
 
-  // Headline
+  // Headline + Badge (calculado juntos para garantizar separación visual real)
   if (sl.headline) {
     const isCover = sl.type === 'cover';
     const hSize = isCover ? 88 : (sl.headline.length > 50 ? 60 : 72);
@@ -694,22 +694,29 @@ async function layoutPhotoMode(ctx, sl, brand, idx, total, c, cat) {
     ctx.fillStyle = c.text;
     const lines = wrapText(ctx, sl.headline, W - PAD * 2, 3);
     const totalH3 = lines.length * (hSize * 1.15);
-    yBottom -= totalH3;
-    lines.forEach((ln, i) => ctx.fillText(ln, PAD, yBottom + i * (hSize * 1.15)));
-    yBottom -= 24;
-  }
 
-  // Label badge — extra gap above headline so badge doesn't overlap cap-height
-  if (sl.label) {
-    const badgeH = 44;
-    ctx.font = '800 22px Inter, sans-serif';
-    const lw = ctx.measureText(sl.label).width + 40;
-    // yBottom currently sits at the headline top; push badge 32px higher for breathing room
-    const badgeY = yBottom - badgeH - 76; // 76px ≥ cap-height del titular (≈63px a 88px) + margen de respiro
-    roundRect(ctx, PAD, badgeY, Math.max(lw, 180), badgeH, 22);
-    ctx.fillStyle = c.badge; ctx.fill();
-    ctx.fillStyle = c.badgeTxt;
-    ctx.fillText(sl.label, PAD + 20, badgeY + 29);
+    // 1. Dibuja el titular desde yBottom hacia arriba
+    yBottom -= totalH3;
+    const headlineBaseline0 = yBottom; // baseline de la primera línea (la más alta)
+    lines.forEach((ln, i) => ctx.fillText(ln, PAD, headlineBaseline0 + i * (hSize * 1.15)));
+
+    // 2. Badge: posición anclada al borde VISUAL del titular (cap-height ≈ 73% del tamaño de fuente)
+    if (sl.label) {
+      const badgeH = 44;
+      const CAP_RATIO = 0.73; // proporción empírica para DM Serif Display / Georgia
+      const BADGE_GAP = 18;   // px entre la parte inferior del badge y la cima visible del titular
+      const capHeightTop = headlineBaseline0 - (hSize * CAP_RATIO);
+      const badgeY = capHeightTop - BADGE_GAP - badgeH;
+      ctx.font = '800 22px Inter, sans-serif';
+      const lw = ctx.measureText(sl.label).width + 40;
+      roundRect(ctx, PAD, badgeY, Math.max(lw, 180), badgeH, 22);
+      ctx.fillStyle = c.badge; ctx.fill();
+      ctx.fillStyle = c.badgeTxt;
+      ctx.fillText(sl.label, PAD + 20, badgeY + 29);
+      yBottom = badgeY - 16; // reserva espacio por encima del badge
+    } else {
+      yBottom -= 24;
+    }
   }
 }
 
