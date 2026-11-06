@@ -1412,7 +1412,7 @@ async function generateImage(slideIndex) {
 }
 
 // Genera imágenes para TODAS las láminas — pide confirmación de costo primero
-async async function generateAllImages() {
+async function generateAllImages() {
   const base = getBackendUrl();
   if (!base) {
     if (document.getElementById('ai-config-body').hidden) toggleAIConfig();
@@ -1501,7 +1501,7 @@ function confirmDialog(title, message) {
 // ═══════════════════════════════════════════
 // GENERAR CON IA
 // ═══════════════════════════════════════════
-async async async function generateWithAI(mode) {
+async function generateWithAI(mode) {
   const base = getBackendUrl();
   if (!base) {
     // Abrir config si está cerrada
