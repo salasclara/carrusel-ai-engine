@@ -264,7 +264,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
         </div>
         <div class="sep row2">
           <div class="form-group"><label>Diapositivas</label>
-            <select id="a-count"><option value="0">Auto (5-7)</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+            <select id="a-count"><option value="0">Auto (5-7)</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
           </div>
           <div class="form-group"><label>&nbsp;</label>
             <button class="btn-gen" onclick="runAuto()">
@@ -305,7 +305,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
         </div>
         <div class="sep row2">
           <div class="form-group"><label>Diapositivas</label>
-            <select id="m-count"><option value="5">5</option><option value="6" selected>6</option><option value="7">7</option><option value="8">8</option></select>
+            <select id="m-count"><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
           </div>
           <div class="form-group"><label>&nbsp;</label>
             <button class="btn-gen" onclick="runManual()">
@@ -394,21 +394,21 @@ const BRANDS = {
 // ═══════════════════════════════════════════
 const DEFAULT_BRAND_PROFILES = {
   pasarela: {
-    businessDescription: 'Escuela profesional de modelaje, pasarela, fotopose, expresión corporal e imagen personal, ubicada en el área de Dallas, Texas.',
+    businessDescription: 'Proyecto editorial y de formación vinculado al modelaje, la pasarela y la moda. Verificar ubicación y oferta antes de anunciar.',
     sector: 'Moda, modelaje y desarrollo personal',
     audience: 'Jóvenes y adultos de 15–45 años interesados en modelaje profesional, fotografía de moda, imagen personal y desarrollo de confianza.',
-    services: 'Clases de pasarela, fotopose, expresión corporal, imagen personal, maquillaje artístico, sesiones fotográficas profesionales, talleres de confianza y presencia escénica.',
+    services: 'Temas de interés: pasarela, fotopose, expresión corporal e imagen personal. Confirmar qué actividades se ofrecen antes de publicitarlas.',
     communicationStyle: 'Aspiracional, elegante y motivador. Destaca la transformación personal, la confianza y el mundo de la moda profesional.',
     visualIdentity: 'Paleta dorada, negra y vino tinto. Estética de alta costura, elegante, sofisticada y profesional.',
     photoTypes: 'Modelos en pasarela de moda, sesiones fotográficas de moda, backstage de fashion show, poses profesionales en estudio con iluminación dramática, telas lujosas y accesorios de moda, luces de pasarela, backstage elegante, mujeres y hombres con ropa de moda.',
     avoidElements: 'Aulas escolares tradicionales, pizarras, escritorios de colegio, libros de texto, uniformes escolares, contextos universitarios genéricos, niños estudiando en clase.',
-    verifiedInfo: 'Escuela ubicada en el área de Dallas, Texas. Programas de modelaje profesional. Web: pasarelastudio.com.',
+    verifiedInfo: 'Marca: Pasarela Studio Internacional. No se han confirmado cursos incluidos, ubicación, acreditaciones ni promociones.',
     restrictions: 'No inventar precios exactos, fechas de inscripción específicas, ni nombres de programas o instructores sin confirmación. Usar frases como "solicita información" o "descubre nuestros programas" en lugar de afirmaciones sobre disponibilidad o costo.',
   },
   rocimar: {
-    businessDescription: 'Canal de noticias y análisis periodístico conducido por Rocimar Morales, enfocado en la comunidad latina.',
+    businessDescription: 'Medio de noticias y comunidad conducido por Rocimar Morales, con cobertura de Cabimas y el estado Zulia, Venezuela.',
     sector: 'Medios de comunicación, periodismo digital',
-    audience: 'Comunidad latina en Estados Unidos interesada en noticias actuales, política y cultura.',
+    audience: 'Habitantes de Cabimas, el Zulia y venezolanos interesados en información local y comunitaria.',
     services: 'Cobertura de noticias, análisis político, reportajes de actualidad, entrevistas.',
     communicationStyle: 'Informativo, neutral y profesional. Basado estrictamente en hechos verificados.',
     visualIdentity: 'Paleta rojo, azul marino y blanco. Estética periodística profesional.',
@@ -418,10 +418,10 @@ const DEFAULT_BRAND_PROFILES = {
     restrictions: 'No inventar hechos, cifras, declaraciones ni fechas. Usar únicamente información proporcionada en el texto del artículo.',
   },
   fancy: {
-    businessDescription: 'Marca de moda y estilo personal de Roxette para mujeres latinas.',
+    businessDescription: 'Revista digital Fancy by Roxette, con secciones HOME, BEAUTY, STYLE y TECH; comienza por HOME.',
     sector: 'Moda, estilo personal, belleza',
     audience: 'Mujeres latinas de 20–45 años interesadas en moda, tendencias y estilo personal.',
-    services: 'Asesoría de imagen, looks de moda, tendencias, estilo personal.',
+    services: 'Reseñas editoriales y recomendaciones de productos para HOME, BEAUTY, STYLE y TECH; no afirmar que se ofrecen servicios de asesoría.',
     communicationStyle: 'Sofisticado, femenino, aspiracional y cercano.',
     visualIdentity: 'Paleta rosa, morado y dorado. Estética glamurosa, femenina y elegante.',
     photoTypes: 'Moda femenina, accesorios de lujo, looks elegantes, sesiones fotográficas de moda, detalles de telas y joyería.',
@@ -454,10 +454,10 @@ const DEFAULT_BRAND_PROFILES = {
     restrictions: 'No inventar testimonios, milagros específicos ni promesas de resultados.',
   },
   latina768: {
-    businessDescription: 'Agencia de servicios para la comunidad latina en Dallas: seguros de vida y salud, bienes raíces e inversiones, y marketing digital.',
+    businessDescription: 'Consultoría de marketing digital, automatización e inteligencia artificial para negocios.',
     sector: 'Servicios profesionales para la comunidad latina',
     audience: 'Familias y emprendedores latinos en Texas y Estados Unidos.',
-    services: 'Seguros de vida y salud, bienes raíces, marketing digital, generación de leads, consultoría empresarial.',
+    services: 'Consultoría de marketing, automatización, desarrollo web, generación de prospectos e integración de IA.',
     communicationStyle: 'Profesional, confiable, cercano y orientado a soluciones para la comunidad latina.',
     visualIdentity: 'Paleta naranja, azul marino y blanco. Estética profesional, moderna y confiable.',
     photoTypes: 'Familias latinas felices, hogares modernos, apretones de mano profesionales, oficinas, documentos, llaves de casa, mapas de Texas.',
@@ -1388,7 +1388,7 @@ async function generateImage(slideIndex) {
     slides[slideIndex].photoScale = 1.0;
     await redrawSlide(slideIndex);
     buildEditPanel(slideIndex);
-    const cost = data.estimatedCost ? `~$${data.estimatedCost.toFixed(3)}` : '~$0.015';
+    const cost = data.estimatedCost ? `~${Number(data.estimatedCost).toFixed(3)}` : 'costo variable';
     toast(`✅ Imagen generada · ${cost} · ${data.model || 'gpt-image-1'}`);
 
   } catch(e) {
@@ -1406,7 +1406,7 @@ async function generateImage(slideIndex) {
 }
 
 // Genera imágenes para TODAS las láminas — pide confirmación de costo primero
-async function generateAllImages() {
+async async function generateAllImages() {
   const base = getBackendUrl();
   if (!base) {
     if (document.getElementById('ai-config-body').hidden) toggleAIConfig();
@@ -1420,10 +1420,10 @@ async function generateAllImages() {
   }
 
   const n = withPrompts.length;
-  const cost = (n * 0.015).toFixed(2);
+  const cost = 'Consulta el precio vigente en tu cuenta de OpenAI';
   const confirmed = await confirmDialog(
     '🎨 Generación de imágenes con IA',
-    `${n} láminas × $0.015 (gpt-image-1 · calidad media)\n\nCosto estimado: ~$${cost} USD\n\nSe generarán una por una.`,
+    `${n} imágenes con costo variable. ${cost}.\n\nSe generarán una por una.`, 
   );
   if (!confirmed) return;
 
@@ -1465,8 +1465,8 @@ async function generateAllImages() {
 
   if (btn) { btn.disabled = false; btn.textContent = '🎨 Imágenes'; }
   if (cur < slides.length) buildEditPanel(cur);
-  const totalCost = (generated * 0.015).toFixed(2);
-  toast(`✅ ${generated} imágenes generadas · ~$${totalCost} USD total`);
+  const totalCost = 'Consulta el consumo real en OpenAI';
+  toast(`✅ ${generated} imágenes generadas. ${totalCost}`);
 }
 
 // Modal de confirmación — devuelve Promise<boolean>
@@ -1495,7 +1495,7 @@ function confirmDialog(title, message) {
 // ═══════════════════════════════════════════
 // GENERAR CON IA
 // ═══════════════════════════════════════════
-async function generateWithAI(mode) {
+async async async function generateWithAI(mode) {
   const base = getBackendUrl();
   if (!base) {
     // Abrir config si está cerrada
@@ -1510,7 +1510,7 @@ async function generateWithAI(mode) {
 
   if (mode === 'auto') {
     topic = document.getElementById('a-text').value.trim();
-    if (topic.length < 20) { toast('⚠️ Pega el texto del artículo antes de usar la IA.', 'error'); return; }
+    if (topic.length < 5) { toast('⚠️ Escribe el tema antes de usar la IA.', 'error'); return; }
     count = parseInt(document.getElementById('a-count').value) || 5;
     cat = getActiveCat('a-cats');
     tone = 'Profesional'; audience = 'General';
