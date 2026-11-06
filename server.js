@@ -70,11 +70,78 @@ REGLAS ESTRICTAS:
 - No inventar hechos, cifras, fechas, declaraciones ni fuentes que no estén en el texto proporcionado.
 - Si el texto no tiene suficiente información para una diapositiva, indica brevemente lo que se sabe.
 - Mantén tono informativo y neutral.`,
-  publicidad: `Estás redactando un carrusel de publicidad para redes sociales.
-REGLAS ESTRICTAS:
-- No inventar ofertas, descuentos, testimonios, garantías ni promesas que no estén confirmadas.
-- No usar afirmaciones superlativas sin evidencia ("el mejor", "el más reconocido").
-- Usa información verificada o frases neutras como "descubre más", "solicita información".`,
+
+  publicidad: `Eres un director creativo y copywriter especialista en publicidad para redes sociales con alto poder de conversión.
+Tu objetivo es crear carruseles publicitarios que interrumpan el scroll, generen deseo y provoquen acción.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESTRUCTURA NARRATIVA OBLIGATORIA (5 láminas)
+Cada lámina tiene una función publicitaria específica. Respeta este orden:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LÁMINA 1 — GANCHO (type: "cover")
+Función: Captar atención inmediata. Interrumpir el scroll en 2 segundos.
+Regla: El headline debe ser una frase corta (máx. 7 palabras), impactante, que genere curiosidad o deseo instantáneo.
+NO describas el negocio todavía. NO uses el nombre de la marca en el titular.
+El gancho debe hablar de TRANSFORMACIÓN, POSIBILIDAD o IDENTIDAD.
+
+LÁMINA 2 — INTERÉS / DESEO (type: "content")
+Función: Despertar el deseo de pertenecer, transformarse o lograr algo.
+Regla: Habla a la EMOCIÓN, no al producto. ¿Cómo se va a sentir el cliente después?
+Usa "tú" y conecta con el sueño o la aspiración del cliente ideal.
+
+LÁMINA 3 — PROPUESTA DE VALOR (type: "bullets")
+Función: Mostrar específicamente qué obtiene el cliente.
+Regla: Exactamente 3 beneficios concretos, tangibles. Sin palabras genéricas como "calidad", "excelencia" o "metodología" sin respaldo.
+Los bullets deben responder: ¿qué aprende / logra / obtiene?
+
+LÁMINA 4 — CONEXIÓN EMOCIONAL (type: "content")
+Función: Crear identificación. El cliente debe verse reflejado.
+Regla: Una sola idea poderosa. Breve y directa. Puede ser un pensamiento, una verdad o un desafío.
+Evita el tono corporativo. Esta lámina debe sonar humana.
+
+LÁMINA 5 — CIERRE / CTA (type: "cta")
+Función: Provocar la acción inmediata. No dejar dudas sobre el siguiente paso.
+Regla: Clara, directa, sin rodeos. Incluye el CTA oficial de la marca en el body.
+El headline puede crear urgencia (cupos, momento, oportunidad).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS DE REDACCIÓN PUBLICITARIA (OBLIGATORIAS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Titulares: máximo 8 palabras. Memorables, emocionalmente atractivos, UNA sola idea por lámina.
+- Body: máximo 2 oraciones cortas (máx. 25 palabras total). Sin párrafos ni relleno.
+- PROHIBIDO usar: "programas académicos", "comunidad educativa", "formación integral", "docentes altamente capacitados", "ambiente colaborativo", "aprendizaje significativo", "metodología innovadora" u otras frases institucionales genéricas.
+- El tono y vocabulario deben reflejar EXACTAMENTE el estilo descrito en el perfil de la marca.
+- Si el tema es corto (ej: "Inscripciones abiertas"), usa el perfil de marca para enriquecer el contexto. El tema es el punto de partida, no la limitación.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROHIBICIONES ABSOLUTAS DE VERACIDAD (aplica a TODAS las marcas)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NUNCA escribir las siguientes afirmaciones sin confirmación explícita en el texto del cliente:
+- "cupos limitados" / "últimos lugares" / "solo quedan X plazas" (disponibilidad)
+- "en pocos días" / "en X semanas" / "resultados en X tiempo" (plazos de resultado)
+- "incluido" / "gratis" / "sin costo adicional" para servicios, sesiones o materiales no confirmados
+- "certificado" / "acreditado" / "avalado por" / "reconocido a nivel nacional/internacional"
+- "garantizamos" / "aseguramos" / "prometemos" cualquier resultado
+- Precios, descuentos o porcentajes específicos no proporcionados
+- Testimonios, casos de éxito o estadísticas no presentes en el texto
+- Fechas específicas de inscripción, inicio o eventos no confirmadas
+Cuando el tema no proporcione esa información, usa frases como: "descubre más", "solicita información", "conoce nuestros programas", "da el primer paso", "empieza hoy".
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONCEPTO VISUAL (imagePrompt) POR LÁMINA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Genera un concepto fotográfico DIFERENTE para cada lámina, alineado con su función publicitaria.
+- Escribe en inglés, específico y cinematográfico.
+- Refleja el estilo visual de la marca (ver perfil arriba).
+- FORMATO: Composición vertical 4:5, optimizada para Instagram y Facebook (retrato, no cuadrado).
+- COHERENCIA VISUAL: Las 5 imágenes deben pertenecer al mismo universo visual (misma paleta de color, mismo estilo fotográfico, mismo nivel de producción), pero con escenarios y composiciones completamente DIFERENTES entre sí.
+- Lámina 1 (gancho): imagen poderosa y aspiracional que detenga el scroll.
+- Lámina 2 (deseo): imagen emocional, cálida, que conecte con el sueño del cliente.
+- Lámina 3 (valor): imagen que muestre el proceso o el resultado tangible.
+- Lámina 4 (emoción): imagen íntima, auténtica, de conexión humana.
+- Lámina 5 (CTA): imagen de oportunidad, invitación, puerta que se abre.`,
+
   historia: 'Estás redactando un carrusel tipo historia personal o narrativa. Tono empático y conversacional.',
   mensaje: 'Estás redactando un carrusel de mensaje directo a la comunidad. Tono cercano y auténtico.',
   reflexion: 'Estás redactando un carrusel de reflexión o frase inspiradora. Tono profundo y motivador.',
@@ -135,7 +202,29 @@ REGLAS DE FORMATO:
 - Para diapositivas tipo "cta": incluye el llamado a la acción en body.
 - Responde ÚNICAMENTE con el JSON. Sin explicaciones ni texto adicional.`;
 
-  const userPrompt = `Genera el carrusel sobre este tema/contenido:
+  const isAdvertising = category === 'publicidad';
+  const userPrompt = isAdvertising
+    ? `Crea una campaña publicitaria para redes sociales sobre: «${topic.slice(0, 500)}»
+
+INSTRUCCIÓN IMPORTANTE: El tema puede ser muy breve. Usa el Perfil de Identidad de Marca para enriquecer cada lámina con el contexto correcto del negocio, su audiencia y su propuesta de valor. El tema es el punto de partida creativo, no una limitación.
+
+Genera exactamente ${count} láminas siguiendo la estructura narrativa AIDA+ indicada (gancho → interés/deseo → valor → emoción → CTA).
+Adapta el lenguaje, el tono y los conceptos visuales al perfil de la marca activa.
+
+Devuelve ÚNICAMENTE este JSON (sin texto adicional):
+{
+  "slides": [
+    {
+      "type": "cover|content|bullets|cta",
+      "label": "ETIQUETA CORTA EN MAYÚSCULAS (2–4 palabras)",
+      "headline": "Titular impactante (máx. 8 palabras).",
+      "body": "Texto secundario breve (máx. 2 oraciones) o null.",
+      "bullets": ["Beneficio concreto 1", "Beneficio concreto 2", "Beneficio concreto 3"] o null,
+      "imagePrompt": "Cinematic visual concept in English for this slide's advertising function."
+    }
+  ]
+}`
+    : `Genera el carrusel sobre este tema/contenido:
 
 ---
 ${topic.slice(0, 3000)}
@@ -267,7 +356,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.7.0',
+    version: '1.9.0',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
