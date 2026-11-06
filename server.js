@@ -203,13 +203,46 @@ REGLAS DE FORMATO:
 - Responde ÚNICAMENTE con el JSON. Sin explicaciones ni texto adicional.`;
 
   const isAdvertising = category === 'publicidad';
+
+  // Extrae vocabulario de marca para inyección directa en el userPrompt
+  const brandServices   = brandProfile?.services   || '';
+  const brandPhotoTypes = brandProfile?.photoTypes  || '';
+  const brandAvoid      = brandProfile?.avoidElements || '';
+  const brandBusiness   = brandProfile?.businessDescription || brandName || '';
+  const brandAudience   = brandProfile?.audience    || '';
+
   const userPrompt = isAdvertising
-    ? `Crea una campaña publicitaria para redes sociales sobre: «${topic.slice(0, 500)}»
+    ? `Crea una campaña publicitaria de ${count} láminas para redes sociales.
 
-INSTRUCCIÓN IMPORTANTE: El tema puede ser muy breve. Usa el Perfil de Identidad de Marca para enriquecer cada lámina con el contexto correcto del negocio, su audiencia y su propuesta de valor. El tema es el punto de partida creativo, no una limitación.
+TEMA / MOTIVO DE LA CAMPAÑA: «${topic.slice(0, 500)}»
 
-Genera exactamente ${count} láminas siguiendo la estructura narrativa AIDA+ indicada (gancho → interés/deseo → valor → emoción → CTA).
-Adapta el lenguaje, el tono y los conceptos visuales al perfil de la marca activa.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTEXTO DE MARCA (USO OBLIGATORIO — no opcional)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Este negocio es: ${brandBusiness}
+Su audiencia es: ${brandAudience}
+Sus servicios reales son: ${brandServices}
+
+REGLA CRÍTICA DE CONTENIDO:
+- Cada titular, body y bullet DEBE hacer referencia directa a los servicios reales listados arriba.
+- Está PROHIBIDO usar motivación genérica, lenguaje escolar, lenguaje corporativo o frases que no reflejen exactamente el tipo de negocio descrito.
+- En la lámina 3 (bullets), los 3 beneficios deben derivarse únicamente de los servicios reales del negocio. No inventar beneficios.
+- El vocabulario de la campaña debe usar las palabras propias del sector de esta marca.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONCEPTO VISUAL — INSTRUCCIONES PARA imagePrompt
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tipos de fotografía correctos para esta marca: ${brandPhotoTypes}
+Elementos que NUNCA deben aparecer: ${brandAvoid}
+
+REGLA DE imagePrompt:
+- El imagePrompt de CADA lámina debe describir una escena de: ${brandPhotoTypes ? brandPhotoTypes.slice(0, 300) : 'fotografía profesional alineada con la marca'}.
+- NO usar paisajes urbanos, ciudades, montañas, naturaleza o escenas genéricas a menos que el perfil lo indique explícitamente.
+- Composición vertical 4:5. Iluminación cinematográfica. Sin texto, logos ni tipografía.
+- Las 5 imágenes deben pertenecer al mismo universo visual pero con escenas completamente diferentes.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Genera las ${count} láminas en estructura AIDA+ (gancho → interés/deseo → valor → emoción → CTA).
 
 Devuelve ÚNICAMENTE este JSON (sin texto adicional):
 {
@@ -217,10 +250,10 @@ Devuelve ÚNICAMENTE este JSON (sin texto adicional):
     {
       "type": "cover|content|bullets|cta",
       "label": "ETIQUETA CORTA EN MAYÚSCULAS (2–4 palabras)",
-      "headline": "Titular impactante (máx. 8 palabras).",
-      "body": "Texto secundario breve (máx. 2 oraciones) o null.",
-      "bullets": ["Beneficio concreto 1", "Beneficio concreto 2", "Beneficio concreto 3"] o null,
-      "imagePrompt": "Cinematic visual concept in English for this slide's advertising function."
+      "headline": "Titular impactante sobre los servicios reales de la marca (máx. 8 palabras).",
+      "body": "Texto secundario breve y específico de la marca (máx. 2 oraciones) o null.",
+      "bullets": ["Servicio/beneficio real 1", "Servicio/beneficio real 2", "Servicio/beneficio real 3"] o null,
+      "imagePrompt": "Specific cinematic scene using only the brand's approved photo types. 4:5 vertical portrait. No text, no logos."
     }
   ]
 }`
@@ -356,7 +389,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '1.9.0',
+    version: '1.9.1',
     openai: !!process.env.OPENAI_API_KEY,
     timestamp: new Date().toISOString(),
   });
