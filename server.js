@@ -157,7 +157,7 @@ app.post('/api/carousel/text', textLimiter, async (req, res) => {
   if (!category) {
     return res.status(400).json({ error: 'El campo "category" es obligatorio.' });
   }
-  const count = Math.min(Math.max(parseInt(slideCount) || 5, 3), 8);
+  const count = category === 'publicidad' ? 5 : Math.min(Math.max(parseInt(slideCount) || 5, 3), 8);
 
   const catInstructions = CAT_INSTRUCTIONS[category] || CAT_INSTRUCTIONS.publicidad;
   const slideTypesDesc = Array.from({ length: count }, (_, i) => SLIDE_TYPES[i + 1] || 'content').join(', ');
@@ -195,8 +195,8 @@ ${slideTypesDesc}
 
 REGLAS DE FORMATO:
 - Etiquetas (label): 2–5 palabras en MAYÚSCULAS, sin puntuación final.
-- Titulares (headline): máximo 12 palabras, frase completa con sentido, puede tener punto final.
-- Texto secundario (body): 1–3 oraciones cortas, máximo 30 palabras por diapositiva.
+- Titulares (headline): máximo 8 palabras, frase completa con sentido, puede tener punto final.
+- Texto secundario (body): 1–2 oraciones cortas, máximo 25 palabras por diapositiva.
 - Puntos destacados (bullets): solo para tipo "bullets", máximo 3 ítems de 8 palabras cada uno.
 - Descripción de imagen (imagePrompt): describe la escena visual en inglés para DALL-E: ambiente, iluminación, composición. SIN texto, logos ni tipografía. Para noticias, indica que debe ser "editorial illustration" no fotografía documental.
 - Para diapositivas tipo "cta": incluye el llamado a la acción en body.
@@ -221,12 +221,12 @@ CONTEXTO DE MARCA (USO OBLIGATORIO — no opcional)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Este negocio es: ${brandBusiness}
 Su audiencia es: ${brandAudience}
-Sus servicios reales son: ${brandServices}
+Servicios descritos (no necesariamente verificados): ${brandServices}\nInformación comercial confirmada: ${brandProfile?.verifiedInfo || 'No proporcionada'}
 
 REGLA CRÍTICA DE CONTENIDO:
-- Cada titular, body y bullet DEBE hacer referencia directa a los servicios reales listados arriba.
+- Cada lámina debe evocar el sector. No anuncies servicios como incluidos salvo que estén confirmados en el tema o en información comercial verificada.
 - Está PROHIBIDO usar motivación genérica, lenguaje escolar, lenguaje corporativo o frases que no reflejen exactamente el tipo de negocio descrito.
-- En la lámina 3 (bullets), los 3 beneficios deben derivarse únicamente de los servicios reales del negocio. No inventar beneficios.
+- En la lámina 3, utiliza exclusivamente prestaciones confirmadas; si faltan, usa tres aspectos generales del sector sin prometer servicios incluidos.
 - El vocabulario de la campaña debe usar las palabras propias del sector de esta marca.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -297,7 +297,7 @@ Devuelve exactamente este JSON (${count} objetos en el array):
       return res.status(502).json({ error: 'La IA devolvió un formato inesperado. Intenta de nuevo.' });
     }
 
-    if (!parsed.slides || !Array.isArray(parsed.slides)) {
+    if (!parsed.slides || !Array.isArray(parsed.slides) || parsed.slides.length !== count) {
       return res.status(502).json({ error: 'La respuesta de la IA no contiene el array "slides". Intenta de nuevo.' });
     }
 
@@ -312,6 +312,7 @@ Devuelve exactamente este JSON (${count} objetos en el array):
       photo: null,
     }));
 
+    if (slides.some(sl => !String(sl.headline || '').trim())) return res.status(502).json({error:'La IA devolvió un titular vacío.'});
     return res.json({
       slides,
       model: 'gpt-4o-mini',
@@ -348,14 +349,14 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
     brandContext = parts.join('. ') + '. ';
   }
 
-  const safePrompt = `${brandContext}${prompt.slice(0, 700)}. Professional photography, cinematic lighting, high quality. NO text, NO logos, NO typography, NO watermarks. Square composition.`;
+  const safePrompt = `${brandContext}${prompt.slice(0, 700)}. Professional photography, cinematic lighting, high quality. NO text, NO logos, NO typography, NO watermarks. Vertical portrait composition intended for 4:5 cropping; leave clear space for an editorial headline.`;
 
   try {
     const response = await openai.images.generate({
-      model: 'gpt-image-2',
+      model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
       prompt: safePrompt,
       n: 1,
-      size: '1024x1024',
+      size: process.env.OPENAI_IMAGE_SIZE || '1024x1536',
       // response_format no soportado en gpt-image-2 — devuelve b64_json por defecto
     });
 
@@ -369,7 +370,7 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
       slideIndex,
       model: 'gpt-image-2',
       quality: 'standard',
-      estimatedCost: 0.040,
+      estimatedCost: null,
       note: 'Imagen generada con gpt-image-2 — base64 nativo, compatible con Canvas/ZIP.',
     });
 
