@@ -1946,10 +1946,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// analyzeWebsite — Fase 2 (placeholder)
+// analyzeWebsite — Fase 2
 async function analyzeWebsite() {
   const url = document.getElementById('cf-website').value.trim();
-  if (!url) return;
+  if (!url) { toast('⚠️ Escribe la URL del sitio primero.', 'error'); return; }
   const base = getBackendUrl();
   if (!base) { toast('⚠️ Configura la URL del backend.', 'error'); return; }
 
@@ -1965,26 +1965,42 @@ async function analyzeWebsite() {
       signal: AbortSignal.timeout(60000),
     });
 
-    if (r.status === 404) {
-      toast('⏳ El análisis automático estará disponible pronto (Fase 2).', 'info');
-      return;
-    }
+    if (r.status === 401) { openAuthModal(() => analyzeWebsite()); return; }
+
+    const data = await r.json();
+
     if (!r.ok) {
-      const d = await r.json();
-      toast('❌ ' + (d.error || 'Error al analizar.'), 'error');
+      toast('❌ ' + (data.error || 'No se pudo analizar el sitio.'), 'error');
       return;
     }
 
-    const { profile } = await r.json();
-    // Rellenar formulario con los datos extraídos
-    if (profile.name && !document.getElementById('cf-name').value) document.getElementById('cf-name').value = profile.name;
-    if (profile.sector) document.getElementById('cf-sector').value = profile.sector;
-    if (profile.businessDescription) document.getElementById('cf-description').value = profile.businessDescription;
-    if (profile.services) document.getElementById('cf-services').value = profile.services;
-    if (profile.audience) document.getElementById('cf-audience').value = profile.audience;
-    if (profile.communicationStyle) document.getElementById('cf-style').value = profile.communicationStyle;
-    if (profile.photoTypes) document.getElementById('cf-photos').value = profile.photoTypes;
-    toast('✅ Perfil extraído del sitio. Revisa y ajusta antes de guardar.', 'info');
+    const { profile, pagesAnalyzed } = data;
+
+    // Rellenar formulario — solo campos vacíos para no sobrescribir
+    const fill = (id, val) => { if (val && val !== 'No confirmado') document.getElementById(id).value = val; };
+    if (!document.getElementById('cf-name').value) fill('cf-name', profile.name);
+    fill('cf-sector', profile.sector);
+    fill('cf-description', profile.businessDescription);
+    fill('cf-services', profile.services);
+    fill('cf-audience', profile.audience);
+    fill('cf-style', profile.communicationStyle);
+    fill('cf-photos', profile.photoTypes);
+
+    // Agregar contacto y ubicación a restricciones/info verificada
+    const extras = [];
+    if (profile.location && profile.location !== 'No confirmado') extras.push(`Ubicación: ${profile.location}`);
+    if (profile.contact && profile.contact !== 'No confirmado') extras.push(`Contacto: ${profile.contact}`);
+    if (extras.length) {
+      const restEl = document.getElementById('cf-restrictions');
+      restEl.value = (restEl.value ? restEl.value + '\n' : '') + extras.join('\n');
+    }
+
+    // Mostrar nota de fuentes y datos no confirmados
+    const unverified = profile.unverified || [];
+    let msg = `✅ Perfil extraído de ${pagesAnalyzed} página(s). Revisa y ajusta antes de guardar.`;
+    if (unverified.length) msg += `\n⚠️ No confirmados: ${unverified.join(', ')}.`;
+    if (profile.sourceUrls?.length) msg += `\n🔗 Fuentes: ${profile.sourceUrls.slice(0,3).join(' · ')}`;
+    toast(msg, 'info');
 
   } catch (err) {
     if (err.name === 'TimeoutError' || err.name === 'AbortError') {
@@ -2098,10 +2114,10 @@ async function analyzeWebsite() {
         <label>Redes sociales <span class="hint">opcional</span></label>
         <input type="text" id="cf-social" placeholder="@usuario o https://instagram.com/usuario">
       </div>
-      <div id="cf-analyze-row" style="display:none;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);">
-        <div style="font-size:11px;font-weight:700;margin-bottom:6px;">🤖 Análisis automático con IA</div>
+      <div id="cf-analyze-row" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);">
+        <div style="font-size:11px;font-weight:700;margin-bottom:4px;">🤖 Análisis automático con IA</div>
         <p style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;">
-          El sistema visitará el sitio web, extraerá información pública y completará el perfil automáticamente. Podrás revisarlo antes de guardarlo.
+          Escribe la URL arriba y pulsa el botón. El sistema visitará el sitio, extraerá la información pública y completará el perfil. Podrás corregirlo antes de guardar.
         </p>
         <button onclick="analyzeWebsite()" id="btn-analyze-web" style="width:100%;padding:9px;border-radius:7px;border:none;
           background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;font-size:12px;font-weight:700;
