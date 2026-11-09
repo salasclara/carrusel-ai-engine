@@ -243,89 +243,292 @@ const SLIDE_TYPES = {
   8: 'cta',
 };
 
-// ─── Instrucciones por categoría ─────────────────────────────────────────
+// ─── Instrucciones por categoría (Fase B) ────────────────────────────────
 const CAT_INSTRUCTIONS = {
-  noticias: `Estás redactando un carrusel periodístico.
-REGLAS ESTRICTAS:
-- No inventar hechos, cifras, fechas, declaraciones ni fuentes que no estén en el texto proporcionado.
-- Si el texto no tiene suficiente información para una diapositiva, indica brevemente lo que se sabe.
-- Mantén tono informativo y neutral.`,
 
+  // ── PUBLICIDAD ──────────────────────────────────────────────────────────
   publicidad: `Eres un director creativo y copywriter especialista en publicidad para redes sociales con alto poder de conversión.
 Tu objetivo es crear carruseles publicitarios que interrumpan el scroll, generen deseo y provoquen acción.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ESTRUCTURA NARRATIVA OBLIGATORIA (5 láminas)
-Cada lámina tiene una función publicitaria específica. Respeta este orden:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 LÁMINA 1 — GANCHO (type: "cover")
-Función: Captar atención inmediata. Interrumpir el scroll en 2 segundos.
-Regla: El headline debe ser una frase corta (máx. 7 palabras), impactante, que genere curiosidad o deseo instantáneo.
-NO describas el negocio todavía. NO uses el nombre de la marca en el titular.
-El gancho debe hablar de TRANSFORMACIÓN, POSIBILIDAD o IDENTIDAD.
+Captar atención en 2 segundos. Frase corta (máx. 7 palabras), impactante. Habla de TRANSFORMACIÓN o IDENTIDAD. NO uses el nombre de la marca en el titular.
 
 LÁMINA 2 — INTERÉS / DESEO (type: "content")
-Función: Despertar el deseo de pertenecer, transformarse o lograr algo.
-Regla: Habla a la EMOCIÓN, no al producto. ¿Cómo se va a sentir el cliente después?
-Usa "tú" y conecta con el sueño o la aspiración del cliente ideal.
+Habla a la EMOCIÓN, no al producto. ¿Cómo se sentirá el cliente? Usa "tú". Conecta con el sueño de la audiencia.
 
 LÁMINA 3 — PROPUESTA DE VALOR (type: "bullets")
-Función: Mostrar específicamente qué obtiene el cliente.
-Regla: Exactamente 3 beneficios concretos, tangibles. Sin palabras genéricas como "calidad", "excelencia" o "metodología" sin respaldo.
-Los bullets deben responder: ¿qué aprende / logra / obtiene?
+Exactamente 3 beneficios concretos y tangibles basados en los servicios REALES de la marca. Sin palabras genéricas.
 
 LÁMINA 4 — CONEXIÓN EMOCIONAL (type: "content")
-Función: Crear identificación. El cliente debe verse reflejado.
-Regla: Una sola idea poderosa. Breve y directa. Puede ser un pensamiento, una verdad o un desafío.
-Evita el tono corporativo. Esta lámina debe sonar humana.
+Una sola idea poderosa. Breve. Debe sonar humana, no corporativa.
 
 LÁMINA 5 — CIERRE / CTA (type: "cta")
-Función: Provocar la acción inmediata. No dejar dudas sobre el siguiente paso.
-Regla: Clara, directa, sin rodeos. Incluye el CTA oficial de la marca en el body.
-El headline puede crear urgencia (cupos, momento, oportunidad).
+Clara y directa. Incluye el CTA oficial de la marca. Puede crear urgencia.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REGLAS DE REDACCIÓN PUBLICITARIA (OBLIGATORIAS)
+REGLAS DE REDACCIÓN (OBLIGATORIAS)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Titulares: máximo 8 palabras. Memorables, emocionalmente atractivos, UNA sola idea por lámina.
-- Body: máximo 2 oraciones cortas (máx. 25 palabras total). Sin párrafos ni relleno.
-- PROHIBIDO usar: "programas académicos", "comunidad educativa", "formación integral", "docentes altamente capacitados", "ambiente colaborativo", "aprendizaje significativo", "metodología innovadora" u otras frases institucionales genéricas.
-- El tono y vocabulario deben reflejar EXACTAMENTE el estilo descrito en el perfil de la marca.
-- Si el tema es corto (ej: "Inscripciones abiertas"), usa el perfil de marca para enriquecer el contexto. El tema es el punto de partida, no la limitación.
+- Titulares: máx. 8 palabras. UNA sola idea por lámina.
+- Body: máx. 2 oraciones cortas (máx. 25 palabras). Sin párrafos ni relleno.
+- PROHIBIDO: "formación integral", "docentes capacitados", "ambiente colaborativo", "metodología innovadora" y frases institucionales genéricas.
+- El tono debe reflejar EXACTAMENTE el estilo descrito en el perfil.
+- Si el tema es corto, usa el perfil de marca para enriquecer. El tema es el punto de partida.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROHIBICIONES ABSOLUTAS DE VERACIDAD (aplica a TODAS las marcas)
+PROHIBICIONES ABSOLUTAS DE VERACIDAD
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-NUNCA escribir las siguientes afirmaciones sin confirmación explícita en el texto del cliente:
-- "cupos limitados" / "últimos lugares" / "solo quedan X plazas" (disponibilidad)
-- "en pocos días" / "en X semanas" / "resultados en X tiempo" (plazos de resultado)
-- "incluido" / "gratis" / "sin costo adicional" para servicios, sesiones o materiales no confirmados
-- "certificado" / "acreditado" / "avalado por" / "reconocido a nivel nacional/internacional"
-- "garantizamos" / "aseguramos" / "prometemos" cualquier resultado
-- Precios, descuentos o porcentajes específicos no proporcionados
-- Testimonios, casos de éxito o estadísticas no presentes en el texto
-- Fechas específicas de inscripción, inicio o eventos no confirmadas
-Cuando el tema no proporcione esa información, usa frases como: "descubre más", "solicita información", "conoce nuestros programas", "da el primer paso", "empieza hoy".
+NUNCA escribir sin confirmación explícita del cliente:
+- "cupos limitados" / "últimos lugares" / "solo quedan X plazas"
+- "en X días/semanas" / "resultados en X tiempo"
+- "incluido" / "gratis" / "sin costo adicional" para no confirmados
+- "certificado" / "acreditado" / "avalado por"
+- "garantizamos" / "aseguramos" cualquier resultado
+- Precios, descuentos o porcentajes no proporcionados
+- Testimonios o estadísticas no presentes en el texto
+- Fechas de inscripción o eventos no confirmadas
+Usa en su lugar: "descubre más", "solicita información", "da el primer paso".
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CONCEPTO VISUAL (imagePrompt) POR LÁMINA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Genera un concepto fotográfico DIFERENTE para cada lámina, alineado con su función publicitaria.
-- Escribe en inglés, específico y cinematográfico.
-- Refleja el estilo visual de la marca (ver perfil arriba).
-- FORMATO: Composición vertical 4:5, optimizada para Instagram y Facebook (retrato, no cuadrado).
-- COHERENCIA VISUAL: Las 5 imágenes deben pertenecer al mismo universo visual (misma paleta de color, mismo estilo fotográfico, mismo nivel de producción), pero con escenarios y composiciones completamente DIFERENTES entre sí.
-- Lámina 1 (gancho): imagen poderosa y aspiracional que detenga el scroll.
-- Lámina 2 (deseo): imagen emocional, cálida, que conecte con el sueño del cliente.
-- Lámina 3 (valor): imagen que muestre el proceso o el resultado tangible.
-- Lámina 4 (emoción): imagen íntima, auténtica, de conexión humana.
-- Lámina 5 (CTA): imagen de oportunidad, invitación, puerta que se abre.`,
+Genera un imagePrompt DIFERENTE para cada lámina. En inglés, cinematográfico.
+- Formato: vertical 4:5, sin texto, sin logos.
+- Las imágenes deben pertenecer al mismo universo visual pero con escenas completamente distintas.
+- Lámina 1: poderosa y aspiracional. Lámina 2: emocional y cálida. Lámina 3: proceso o resultado tangible. Lámina 4: conexión humana íntima. Lámina 5: oportunidad, puerta que se abre.`,
 
-  historia: 'Estás redactando un carrusel tipo historia personal o narrativa. Tono empático y conversacional.',
-  mensaje: 'Estás redactando un carrusel de mensaje directo a la comunidad. Tono cercano y auténtico.',
-  reflexion: 'Estás redactando un carrusel de reflexión o frase inspiradora. Tono profundo y motivador.',
+  // ── NOTICIAS ────────────────────────────────────────────────────────────
+  noticias: `Eres un periodista y editor de contenido para redes sociales.
+Tu objetivo es comunicar hechos reales con claridad, precisión y estructura periodística.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESTRUCTURA OBLIGATORIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LÁMINA 1 — TITULAR (type: "cover")
+El hecho más importante en una sola frase directa. Responde QUÉ ocurrió. Sin adjetivos sensacionalistas.
+
+LÁMINA 2 — CONTEXTO (type: "content")
+QUIÉN participó y CUÁNDO/DÓNDE ocurrió. Solo datos presentes en el texto proporcionado.
+
+LÁMINA 3 — DESARROLLO (type: "bullets")
+3 puntos clave del hecho. Datos concretos. Sin interpretación ni especulación.
+
+LÁMINA 4 — IMPLICACIONES (type: "content")
+¿Qué significa esto? Solo si el texto lo indica. Si no, describe brevemente el impacto directo.
+
+LÁMINA 5 — CIERRE (type: "cta")
+Fuente o contexto adicional. Puede invitar a seguir la cobertura.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS PERIODÍSTICAS (INQUEBRANTABLES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- NO inventar hechos, cifras, fechas, declaraciones ni fuentes que no estén en el texto.
+- NO usar el tono de la marca como anuncio comercial. Es una noticia, no publicidad.
+- Si el texto no tiene suficiente información para una lámina, describe brevemente lo que se sabe.
+- Si falta información esencial (fecha, lugar, protagonistas), indícalo en el body con "[Dato no disponible]".
+- Mantén tono informativo y neutral. Sin opinión ni dramatismo.
+- Las fechas y fuentes deben preservarse tal como aparecen en el texto original.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONCEPTO VISUAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+imagePrompt debe describir ilustraciones editoriales o fotografía documental. En inglés.
+- Formato: vertical 4:5. Editorial, limpio, sin texto ni logos.
+- NO usar imágenes publicitarias o aspiracionales. El estilo debe ser periodístico y serio.`,
+
+  // ── REFLEXIÓN ───────────────────────────────────────────────────────────
+  reflexion: `Eres un escritor de contenido inspirador para redes sociales.
+Tu objetivo es crear reflexiones originales que conecten con los valores y la audiencia de la marca.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESTRUCTURA OBLIGATORIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LÁMINA 1 — FRASE DE APERTURA (type: "cover")
+Una idea que detenga el scroll. Formulada como verdad universal o pregunta poderosa. Máx. 8 palabras.
+
+LÁMINA 2 — DESARROLLO (type: "content")
+Explora la idea. ¿Por qué importa? Escribe a la audiencia específica de la marca, no a todos.
+
+LÁMINA 3 — PUNTOS DE REFLEXIÓN (type: "bullets")
+3 ideas relacionadas que profundizan el tema. Originales, no genéricas.
+
+LÁMINA 4 — CONEXIÓN PERSONAL (type: "content")
+Acerca la reflexión al mundo real del lector. Usando el vocabulario y tono de la marca.
+
+LÁMINA 5 — INVITACIÓN (type: "cta")
+Un pensamiento de cierre o una invitación a reflexionar más. No convertir en anuncio comercial.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS EDITORIALES (OBLIGATORIAS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- El contenido debe ser ORIGINAL. No parafrasear citas conocidas sin atribución.
+- NO inventar citas ni atribuirlas a personas reales.
+- NO convertir la reflexión en publicidad ni mencionar productos o servicios a menos que sea completamente natural.
+- El estilo y vocabulario deben reflejar la identidad de la marca (ver perfil).
+- La reflexión debe relacionarse con los valores y el mundo de la audiencia, no ser genérica.
+- Tono: profundo pero accesible. Inspirador sin ser sermón.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONCEPTO VISUAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+imagePrompt: fotografía artística, atmosférica, que evoque la emoción de la reflexión. En inglés.
+- Formato: vertical 4:5. Iluminación suave, composición poética. Sin texto ni logos.
+- Refleja el universo visual de la marca pero con un tono más íntimo e introspectivo.`,
+
+  // ── HISTORIA ────────────────────────────────────────────────────────────
+  historia: `Eres un narrador de historias para redes sociales.
+Tu objetivo es contar una historia real, narrativa o testimonial que conecte emocionalmente con la audiencia.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESTRUCTURA OBLIGATORIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LÁMINA 1 — INTRODUCCIÓN (type: "cover")
+Presenta el personaje, la situación o el momento inicial. Genera curiosidad. ¿Quién y en qué punto de su vida?
+
+LÁMINA 2 — DESAFÍO (type: "content")
+El problema, la duda o el punto de quiebre. ¿Qué tenía que superar o decidir?
+
+LÁMINA 3 — PROCESO (type: "bullets")
+3 pasos, decisiones o cambios concretos que ocurrieron. Específicos, no genéricos.
+
+LÁMINA 4 — RESULTADO (type: "content")
+¿Cómo terminó o cómo cambió? Concreto y emocional. Si es ficticio, debe ser claramente narrativo.
+
+LÁMINA 5 — LECCIÓN (type: "cta")
+La idea que se lleva el lector. Puede conectar suavemente con la marca si es natural.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS NARRATIVAS (OBLIGATORIAS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Si la historia es REAL (testimonio, caso de cliente, experiencia de la marca): usar solo los datos proporcionados. No agregar detalles inventados.
+- Si es FICTICIA o NARRATIVA: indicar claramente en el label o contexto que es un relato ilustrativo.
+- NO inventar testimonios de clientes, alumnos ni participantes reales.
+- NO mezclar datos reales con ficción sin señalarlo.
+- Tono: conversacional, humano, empático. Primera o tercera persona según el texto.
+- Usa el vocabulario y la voz de la marca (ver perfil).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONCEPTO VISUAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+imagePrompt: fotografía narrativa que evoque el momento de la historia. En inglés.
+- Formato: vertical 4:5. Cálido, humano, auténtico. Sin texto ni logos.
+- Cada lámina debe reflejar visualmente el momento narrativo correspondiente.`,
+
+  // ── MENSAJE ─────────────────────────────────────────────────────────────
+  mensaje: `Eres un especialista en comunicación de comunidad para redes sociales.
+Tu objetivo es crear mensajes directos, cálidos y auténticos de la marca hacia su audiencia.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESTRUCTURA OBLIGATORIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LÁMINA 1 — SALUDO / APERTURA (type: "cover")
+El tono y la intención del mensaje en una frase directa. Debe sentirse como una conversación real.
+
+LÁMINA 2 — MENSAJE CENTRAL (type: "content")
+La idea principal: felicitación, agradecimiento, celebración, motivación o reconocimiento.
+
+LÁMINA 3 — DESARROLLO (type: "bullets")
+3 ideas que amplían o complementan el mensaje. Específicas para esta audiencia.
+
+LÁMINA 4 — CONEXIÓN (type: "content")
+Acerca el mensaje a la experiencia del lector. Personal y cercano.
+
+LÁMINA 5 — CIERRE (type: "cta")
+Un pensamiento final cálido. Puede incluir el nombre de la marca o un gesto de comunidad.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS DE TONO (OBLIGATORIAS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- El tono debe adaptarse EXACTAMENTE al estilo de comunicación de la marca (ver perfil).
+- NO incluir afirmaciones comerciales a menos que el mensaje sea explícitamente una promoción.
+- NO inventar hechos, fechas, logros o estadísticas de la comunidad.
+- Lenguaje cercano y humano. Sin formalidad corporativa.
+- Si el mensaje es de celebración (cumpleaños, aniversario, fecha especial): mencionar el motivo solo si está en el texto.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONCEPTO VISUAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+imagePrompt: fotografía cálida, de comunidad, celebración o conexión humana. En inglés.
+- Formato: vertical 4:5. Iluminación cálida, ambiente positivo. Sin texto ni logos.
+- Debe transmitir el mismo sentimiento del mensaje: gratitud, celebración, motivación o cercanía.`,
 };
+
+// ─── Fase C: Selección inteligente de contexto por categoría ─────────────
+function buildBrandContext(brandProfile, category) {
+  if (!brandProfile) return '';
+
+  const p = brandProfile;
+
+  // Campos comunes a todas las categorías
+  const name    = p.businessDescription || '';
+  const sector  = p.sector || '';
+  const style   = p.communicationStyle || '';
+  const audience= p.audience || '';
+  const avoid   = p.avoidElements || '';
+  const photos  = p.photoTypes || '';
+  const restrict= p.restrictions || '';
+
+  // Campos específicos de publicidad
+  const services = p.services || '';
+  const verified = p.verifiedInfo || '';
+  const visual   = p.visualIdentity || '';
+
+  switch (category) {
+
+    case 'publicidad':
+      // Contexto completo — todo es relevante para vender
+      return `PERFIL DE MARCA (uso obligatorio):
+Negocio: ${name}
+Sector: ${sector}
+Público objetivo: ${audience}
+Servicios reales: ${services}
+Estilo de comunicación: ${style}
+Identidad visual: ${visual}
+Fotografía recomendada: ${photos}
+Elementos a EVITAR: ${avoid}
+Información comercial verificada: ${verified}
+RESTRICCIONES EDITORIALES: ${restrict}`;
+
+    case 'noticias':
+      // Solo restricciones e info verificada — no contaminar con marketing
+      return `CONTEXTO DE LA MARCA (solo para identificar quién publica, no para convertir en anuncio):
+Nombre del medio o marca: ${name}
+Sector: ${sector}
+RESTRICCIONES EDITORIALES: ${restrict}
+${verified ? `Información verificada de la marca: ${verified}` : ''}`;
+
+    case 'reflexion':
+      // Voz, valores y audiencia — sin servicios ni datos comerciales
+      return `VOZ Y AUDIENCIA DE LA MARCA:
+Descripción: ${name}
+Sector: ${sector}
+Público al que habla: ${audience}
+Estilo de comunicación (voz de la marca): ${style}
+Fotografía recomendada para el universo visual: ${photos}
+Elementos a evitar: ${avoid}`;
+
+    case 'historia':
+      // Identidad y voz — para que la narración suene a la marca
+      return `VOZ E IDENTIDAD DE LA MARCA:
+Descripción del negocio: ${name}
+Sector: ${sector}
+Audiencia principal: ${audience}
+Estilo de comunicación: ${style}
+${restrict ? `Restricciones: ${restrict}` : ''}`;
+
+    case 'mensaje':
+      // Solo tono y audiencia — el mensaje es de comunidad, no comercial
+      return `TONO Y AUDIENCIA DE LA MARCA:
+Descripción: ${name}
+Público al que habla: ${audience}
+Estilo de comunicación (tono): ${style}`;
+
+    default:
+      return `PERFIL DE MARCA: ${name}. Sector: ${sector}. Audiencia: ${audience}. Estilo: ${style}.`;
+  }
+}
 
 // ─── POST /api/carousel/text ─────────────────────────────────────────────
 app.post('/api/carousel/text', textLimiter, async (req, res) => {
@@ -342,28 +545,15 @@ app.post('/api/carousel/text', textLimiter, async (req, res) => {
   const catInstructions = CAT_INSTRUCTIONS[category] || CAT_INSTRUCTIONS.publicidad;
   const slideTypesDesc = Array.from({ length: count }, (_, i) => SLIDE_TYPES[i + 1] || 'content').join(', ');
 
-  // Construir bloque de perfil de marca si viene del frontend
-  const brandProfileBlock = brandProfile ? `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PERFIL DE IDENTIDAD DE MARCA (Brand AI Profile)
-Usa esta información para contextualizar TODAS las diapositivas:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Negocio: ${brandProfile.businessDescription || ''}
-Sector: ${brandProfile.sector || ''}
-Público objetivo: ${brandProfile.audience || ''}
-Servicios / temas principales: ${brandProfile.services || ''}
-Estilo de comunicación: ${brandProfile.communicationStyle || ''}
-Identidad visual: ${brandProfile.visualIdentity || ''}
-Tipos de fotografía recomendada: ${brandProfile.photoTypes || ''}
-Elementos visuales a EVITAR: ${brandProfile.avoidElements || ''}
-Información comercial verificada: ${brandProfile.verifiedInfo || ''}
-RESTRICCIONES EDITORIALES CRÍTICAS: ${brandProfile.restrictions || ''}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━` : '';
+  // Fase C: contexto inteligente según categoría
+  const brandContextBlock = brandProfile
+    ? `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${buildBrandContext(brandProfile, category)}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+    : '';
 
   const systemPrompt = `Eres un experto en comunicación visual para Instagram y Facebook. Generas contenido profesional en español para carruseles de ${count} diapositivas.
 
 ${catInstructions}
-${brandProfileBlock}
+${brandContextBlock}
 MARCA: ${brandName || brand}
 CATEGORÍA: ${category}
 TONO: ${tone}
@@ -382,80 +572,128 @@ REGLAS DE FORMATO:
 - Para diapositivas tipo "cta": incluye el llamado a la acción en body.
 - Responde ÚNICAMENTE con el JSON. Sin explicaciones ni texto adicional.`;
 
-  const isAdvertising = category === 'publicidad';
-
-  // Extrae vocabulario de marca para inyección directa en el userPrompt
+  // Fase B+C: userPrompt diferenciado por categoría
   const brandServices   = brandProfile?.services   || '';
   const brandPhotoTypes = brandProfile?.photoTypes  || '';
   const brandAvoid      = brandProfile?.avoidElements || '';
   const brandBusiness   = brandProfile?.businessDescription || brandName || '';
   const brandAudience   = brandProfile?.audience    || '';
 
-  const userPrompt = isAdvertising
-    ? `Crea una campaña publicitaria de ${count} láminas para redes sociales.
+  const JSON_SCHEMA = `{
+  "slides": [
+    {
+      "type": "cover|content|bullets|cta",
+      "label": "ETIQUETA CORTA EN MAYÚSCULAS (2–4 palabras)",
+      "headline": "Titular (máx. 8 palabras).",
+      "body": "Texto secundario (máx. 2 oraciones) o null.",
+      "bullets": ["Punto 1", "Punto 2", "Punto 3"] o null,
+      "imagePrompt": "Cinematic scene in English. Vertical 4:5. No text, no logos."
+    }
+  ]
+}`;
+
+  let userPrompt;
+
+  if (category === 'publicidad') {
+    userPrompt = `Crea una campaña publicitaria de ${count} láminas para redes sociales.
 
 TEMA / MOTIVO DE LA CAMPAÑA: «${topic.slice(0, 500)}»
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CONTEXTO DE MARCA (USO OBLIGATORIO — no opcional)
+CONTEXTO DE MARCA (USO OBLIGATORIO)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Este negocio es: ${brandBusiness}
 Su audiencia es: ${brandAudience}
 Sus servicios reales son: ${brandServices}
 
-REGLA CRÍTICA DE CONTENIDO:
-- Cada titular, body y bullet DEBE hacer referencia directa a los servicios reales listados arriba.
-- Está PROHIBIDO usar motivación genérica, lenguaje escolar, lenguaje corporativo o frases que no reflejen exactamente el tipo de negocio descrito.
-- En la lámina 3 (bullets), los 3 beneficios deben derivarse únicamente de los servicios reales del negocio. No inventar beneficios.
-- El vocabulario de la campaña debe usar las palabras propias del sector de esta marca.
+REGLA CRÍTICA:
+- Cada titular y bullet DEBE hacer referencia a los servicios reales listados arriba.
+- PROHIBIDO: motivación genérica, frases institucionales, lenguaje corporativo.
+- Los 3 bullets de la lámina 3 deben derivarse solo de los servicios reales.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CONCEPTO VISUAL — INSTRUCCIONES PARA imagePrompt
+CONCEPTO VISUAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Tipos de fotografía correctos para esta marca: ${brandPhotoTypes}
-Elementos que NUNCA deben aparecer: ${brandAvoid}
-
-REGLA DE imagePrompt:
-- El imagePrompt de CADA lámina debe describir una escena de: ${brandPhotoTypes ? brandPhotoTypes.slice(0, 300) : 'fotografía profesional alineada con la marca'}.
-- NO usar paisajes urbanos, ciudades, montañas, naturaleza o escenas genéricas a menos que el perfil lo indique explícitamente.
-- Composición vertical 4:5. Iluminación cinematográfica. Sin texto, logos ni tipografía.
-- Las 5 imágenes deben pertenecer al mismo universo visual pero con escenas completamente diferentes.
+Fotografía correcta para esta marca: ${brandPhotoTypes || 'fotografía profesional alineada con la marca'}
+Nunca usar: ${brandAvoid || 'imágenes genéricas sin relación a la marca'}
+- Composición vertical 4:5. Las ${count} imágenes: mismo universo visual, escenas completamente distintas.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Genera las ${count} láminas en estructura AIDA+ (gancho → interés/deseo → valor → emoción → CTA).
+Estructura AIDA+: gancho → interés/deseo → valor → emoción → CTA.
 
-Devuelve ÚNICAMENTE este JSON (sin texto adicional):
-{
-  "slides": [
-    {
-      "type": "cover|content|bullets|cta",
-      "label": "ETIQUETA CORTA EN MAYÚSCULAS (2–4 palabras)",
-      "headline": "Titular impactante sobre los servicios reales de la marca (máx. 8 palabras).",
-      "body": "Texto secundario breve y específico de la marca (máx. 2 oraciones) o null.",
-      "bullets": ["Servicio/beneficio real 1", "Servicio/beneficio real 2", "Servicio/beneficio real 3"] o null,
-      "imagePrompt": "Specific cinematic scene using only the brand's approved photo types. 4:5 vertical portrait. No text, no logos."
-    }
-  ]
-}`
-    : `Genera el carrusel sobre este tema/contenido:
+Devuelve ÚNICAMENTE este JSON:
+${JSON_SCHEMA}`;
 
+  } else if (category === 'noticias') {
+    userPrompt = `Redacta un carrusel periodístico de ${count} láminas.
+
+TEXTO / INFORMACIÓN DE LA NOTICIA:
 ---
 ${topic.slice(0, 3000)}
 ---
 
-Devuelve exactamente este JSON (${count} objetos en el array):
-{
-  "slides": [
-    {
-      "type": "cover|content|bullets|cta",
-      "label": "ETIQUETA EN MAYÚSCULAS",
-      "headline": "Titular profesional.",
-      "body": "Texto secundario o null.",
-      "bullets": ["Punto 1", "Punto 2", "Punto 3"] o null,
-      "imagePrompt": "Visual description for DALL-E in English."
-    }
-  ]
-}`;
+INSTRUCCIONES:
+- Usa ÚNICAMENTE los hechos presentes en el texto anterior.
+- Estructura: titular → contexto (quién/cuándo/dónde) → 3 puntos clave → implicaciones → cierre con fuente.
+- Si falta información para alguna lámina, indica "[Dato no disponible]" en el body.
+- imagePrompt: ilustración editorial o fotografía documental. Estilo periodístico, sin glamour.
+
+Devuelve ÚNICAMENTE este JSON:
+${JSON_SCHEMA}`;
+
+  } else if (category === 'reflexion') {
+    userPrompt = `Crea un carrusel de reflexión de ${count} láminas.
+
+TEMA O IDEA DE PARTIDA: «${topic.slice(0, 500)}»
+
+INSTRUCCIONES:
+- La reflexión debe conectar con el mundo y los valores de la audiencia de esta marca: ${brandAudience || 'audiencia general'}.
+- El tono y vocabulario deben reflejar el estilo de la marca: ${brandBusiness}.
+- NO convertir en anuncio. NO mencionar productos ni servicios a menos que sea completamente natural.
+- NO inventar citas ni atribuirlas a personas reales.
+- Estructura: frase de apertura → desarrollo → 3 ideas relacionadas → conexión personal → invitación de cierre.
+- imagePrompt: fotografía artística y atmosférica que evoque la emoción de la reflexión. Vertical 4:5.
+
+Devuelve ÚNICAMENTE este JSON:
+${JSON_SCHEMA}`;
+
+  } else if (category === 'historia') {
+    userPrompt = `Crea un carrusel narrativo de ${count} láminas.
+
+HISTORIA O PUNTO DE PARTIDA:
+---
+${topic.slice(0, 2000)}
+---
+
+INSTRUCCIONES:
+- Si la historia contiene datos reales (personas, fechas, hechos): úsalos exactamente. No agregar detalles.
+- Si es una historia ficticia o ilustrativa: indicarlo en el label de la primera lámina.
+- NO inventar testimonios de clientes o participantes reales.
+- Estructura: presentación → desafío → proceso (3 pasos) → resultado → lección.
+- Voz y vocabulario de la marca: ${brandBusiness}.
+- imagePrompt: fotografía narrativa y humana que refleje el momento de cada lámina. Vertical 4:5.
+
+Devuelve ÚNICAMENTE este JSON:
+${JSON_SCHEMA}`;
+
+  } else {
+    // mensaje y cualquier categoría futura
+    userPrompt = `Crea un carrusel de ${category} de ${count} láminas.
+
+TEMA / MENSAJE:
+---
+${topic.slice(0, 2000)}
+---
+
+INSTRUCCIONES:
+- Tono y estilo de la marca: ${brandBusiness}. Audiencia: ${brandAudience || 'comunidad de la marca'}.
+- Lenguaje cercano y humano. Sin formalidad corporativa.
+- NO inventar hechos, logros ni estadísticas de la comunidad.
+- imagePrompt: fotografía cálida de comunidad o celebración. Vertical 4:5.
+
+Devuelve ÚNICAMENTE este JSON:
+${JSON_SCHEMA}`;
+  }
 
   try {
     const completion = await openai.chat.completions.create({
