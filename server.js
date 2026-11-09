@@ -820,7 +820,7 @@ app.get('/api/clients/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
     const { rows } = await db.query(
-      `SELECT * FROM clients WHERE (id = $1 OR slug = $1) AND status != 'deleted' LIMIT 1`,
+      `SELECT * FROM clients WHERE (id::text = $1 OR slug = $1) AND status != 'deleted' LIMIT 1`,
       [id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Cliente no encontrado.' });
@@ -922,7 +922,7 @@ app.patch('/api/clients/:id', requireAuth, async (req, res) => {
 
   try {
     const { rows } = await db.query(
-      `UPDATE clients SET ${fields.join(', ')} WHERE (id = $${i} OR slug = $${i}) RETURNING *`,
+      `UPDATE clients SET ${fields.join(', ')} WHERE (id::text = $${i} OR slug = $${i}) RETURNING *`,
       values
     );
     if (!rows.length) return res.status(404).json({ error: 'Cliente no encontrado.' });
@@ -940,7 +940,7 @@ app.delete('/api/clients/:id', requireAuth, async (req, res) => {
   try {
     const { rows } = await db.query(
       `UPDATE clients SET status = 'archived', updated_at = NOW()
-       WHERE (id = $1 OR slug = $1) AND status = 'active' RETURNING id, name`,
+       WHERE (id::text = $1 OR slug = $1) AND status = 'active' RETURNING id, name`,
       [id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Cliente no encontrado.' });
