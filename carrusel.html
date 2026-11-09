@@ -1944,6 +1944,34 @@ document.addEventListener('DOMContentLoaded', () => {
       row.style.display = webInput.value.trim().length > 6 ? 'block' : 'none';
     });
   }
+
+  // ── Fase 3: auto-cargar clientes de BD al arranque ──────────────────────
+  (async () => {
+    const key = getAccessKey();
+    const base = getBackendUrl();
+    if (!key || !base) return;
+    try {
+      const r = await fetch(`${base}/api/clients`, {
+        headers: { 'x-access-key': key },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) return; // sin clave válida, silencioso
+      const { clients } = await r.json();
+      if (!Array.isArray(clients)) return;
+      // Para cada cliente necesitamos el perfil completo
+      await Promise.all(clients.map(async (c) => {
+        try {
+          const r2 = await fetch(`${base}/api/clients/${c.slug || c.id}`, {
+            headers: { 'x-access-key': key },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (!r2.ok) return;
+          const { client } = await r2.json();
+          applyClientToBrandEngine(client);
+        } catch { /* silencioso */ }
+      }));
+    } catch { /* sin backend o sin red, silencioso */ }
+  })();
 });
 
 // analyzeWebsite — Fase 2
