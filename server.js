@@ -479,9 +479,10 @@ function buildBrandContext(brandProfile, category) {
   const restrict= p.restrictions || '';
 
   // Campos específicos de publicidad
-  const services = p.services || '';
-  const verified = p.verifiedInfo || '';
-  const visual   = p.visualIdentity || '';
+  const services  = p.services || '';
+  const verified  = p.verifiedInfo || '';
+  const visual    = p.visualIdentity || '';
+  const tmpInfo   = p.temporaryInfo || '';
 
   switch (category) {
 
@@ -497,7 +498,7 @@ Identidad visual: ${visual}
 Fotografía recomendada: ${photos}
 Elementos a EVITAR: ${avoid}
 Información comercial verificada: ${verified}
-RESTRICCIONES EDITORIALES: ${restrict}`;
+RESTRICCIONES EDITORIALES: ${restrict}${tmpInfo ? `\nINFORMACIÓN TEMPORAL PRIORITARIA (úsala en este carrusel si es relevante): ${tmpInfo}` : ''}`;
 
     case 'noticias':
       // Solo restricciones e info verificada — no contaminar con marketing
@@ -531,7 +532,7 @@ ${restrict ? `Restricciones: ${restrict}` : ''}`;
       return `TONO Y AUDIENCIA DE LA MARCA:
 Descripción: ${name}
 Público al que habla: ${audience}
-Estilo de comunicación (tono): ${style}`;
+Estilo de comunicación (tono): ${style}${tmpInfo ? `\nINFORMACIÓN TEMPORAL (puedes referenciarla si encaja con el mensaje): ${tmpInfo}` : ''}`;
 
     default:
       return `PERFIL DE MARCA: ${name}. Sector: ${sector}. Audiencia: ${audience}. Estilo: ${style}.`;
