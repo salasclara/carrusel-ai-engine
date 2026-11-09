@@ -547,6 +547,9 @@ function openProfileEditor() {
     { key: 'avoidElements',       label: '⚠️ Elementos visuales a EVITAR', rows: 2 },
     { key: 'verifiedInfo',        label: 'Información comercial verificada', rows: 2 },
     { key: 'restrictions',        label: '🚫 Restricciones (qué no inventar)', rows: 2 },
+    { key: 'facebook',            label: 'Facebook', rows: 1 },
+    { key: 'instagram',           label: 'Instagram', rows: 1 },
+    { key: 'temporaryInfo',       label: '📢 Información temporal / promoción activa', rows: 2 },
   ];
   const html = fields.map(f => `
     <div class="form-group">
@@ -565,7 +568,7 @@ function closeProfileEditor() {
 
 function saveProfile() {
   const id = activeBrandId;
-  const keys = ['businessDescription','sector','audience','services','communicationStyle','visualIdentity','photoTypes','avoidElements','verifiedInfo','restrictions'];
+  const keys = ['businessDescription','sector','audience','services','communicationStyle','visualIdentity','photoTypes','avoidElements','verifiedInfo','restrictions','facebook','instagram','temporaryInfo'];
   const updated = {};
   for (const k of keys) {
     const el = document.getElementById('pf-' + k);
@@ -1796,6 +1799,9 @@ function applyClientToBrandEngine(client) {
     avoidElements: client.avoidElements || '',
     verifiedInfo: client.verifiedInfo || '',
     restrictions: client.restrictions || '',
+    facebook: client.facebook || '',
+    instagram: client.instagram || '',
+    temporaryInfo: client.temporaryInfo || '',
   };
   saveBrandProfiles(brandProfiles);
 
@@ -1833,7 +1839,8 @@ function showNewClientForm(editId) {
 
 function clearClientForm() {
   ['cf-name','cf-website','cf-sector','cf-description','cf-services',
-   'cf-audience','cf-style','cf-photos','cf-avoid','cf-restrictions','cf-social']
+   'cf-audience','cf-style','cf-photos','cf-avoid','cf-restrictions','cf-social',
+   'cf-facebook','cf-instagram','cf-temporary-info']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 }
 
@@ -1863,6 +1870,9 @@ async function editClient(idOrSlug) {
     document.getElementById('cf-restrictions').value = `${client.verifiedInfo || ''}\n${client.restrictions || ''}`.trim();
     const social = client.socialLinks ? Object.values(client.socialLinks).join(', ') : '';
     document.getElementById('cf-social').value = social;
+    document.getElementById('cf-facebook').value      = client.facebook || '';
+    document.getElementById('cf-instagram').value     = client.instagram || '';
+    document.getElementById('cf-temporary-info').value = client.temporaryInfo || '';
     showNewClientForm(client.slug || client.id);
   } catch {
     toast('❌ Error al cargar el cliente.', 'error');
@@ -1890,6 +1900,9 @@ async function saveClientProfile() {
     verifiedInfo: null,
     restrictions: restrictionsRaw || null,
     socialLinks: socialRaw ? { social: socialRaw } : null,
+    facebook: document.getElementById('cf-facebook').value.trim() || null,
+    instagram: document.getElementById('cf-instagram').value.trim() || null,
+    temporaryInfo: document.getElementById('cf-temporary-info').value.trim() || null,
   };
 
   const base = getBackendUrl();
@@ -2141,6 +2154,16 @@ async function analyzeWebsite() {
       <div class="form-group">
         <label>Redes sociales <span class="hint">opcional</span></label>
         <input type="text" id="cf-social" placeholder="@usuario o https://instagram.com/usuario">
+      </div>
+      <div class="row2">
+        <div class="form-group"><label>Facebook <span class="hint">opcional</span></label>
+          <input type="text" id="cf-facebook" placeholder="facebook.com/negocio o @NombrePágina"></div>
+        <div class="form-group"><label>Instagram <span class="hint">opcional</span></label>
+          <input type="text" id="cf-instagram" placeholder="@usuario o instagram.com/usuario"></div>
+      </div>
+      <div class="form-group">
+        <label>Información temporal / promoción activa <span class="hint">opcional</span></label>
+        <textarea id="cf-temporary-info" placeholder="Ej: Inscripciones abiertas hasta el 15 de enero. Descuento del 20% en clases de pasarela." style="min-height:60px;"></textarea>
       </div>
       <div id="cf-analyze-row" style="padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);">
         <div style="font-size:11px;font-weight:700;margin-bottom:4px;">🤖 Análisis automático con IA</div>
