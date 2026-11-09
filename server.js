@@ -61,6 +61,9 @@ async function initDB() {
         avoid_elements TEXT,
         verified_info TEXT,
         restrictions TEXT,
+        facebook    TEXT,
+        instagram   TEXT,
+        temporary_info TEXT,
         colors      TEXT,
         source_urls TEXT,
         analyzed_at TIMESTAMPTZ,
@@ -75,6 +78,11 @@ async function initDB() {
     if (parseInt(rows[0].count) === 0) {
       await seedDefaultClients();
     }
+    // Migraciones para tablas existentes
+    await db.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS facebook TEXT`);
+    await db.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS instagram TEXT`);
+    await db.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS temporary_info TEXT`);
+
     console.log('✅ Base de datos lista');
   } catch (err) {
     console.error('❌ Error inicializando DB:', err.message);
@@ -1023,6 +1031,9 @@ function rowToClient(row) {
     avoidElements:       row.avoid_elements,
     verifiedInfo:        row.verified_info,
     restrictions:        row.restrictions,
+    facebook:            row.facebook,
+    instagram:           row.instagram,
+    temporaryInfo:       row.temporary_info,
     colors:              parseJ(row.colors) || {},
     sourceUrls:          parseJ(row.source_urls) || [],
     analyzedAt:          row.analyzed_at,
@@ -1075,7 +1086,8 @@ app.post('/api/clients', requireAuth, async (req, res) => {
   const {
     name, website, sector, logoUrl, socialLinks,
     businessDescription, audience, services, communicationStyle,
-    visualIdentity, photoTypes, avoidElements, verifiedInfo, restrictions, colors,
+    visualIdentity, photoTypes, avoidElements, verifiedInfo, restrictions,
+    facebook, instagram, temporaryInfo, colors,
   } = req.body;
 
   if (!name || name.trim().length < 2) {
@@ -1103,8 +1115,8 @@ app.post('/api/clients', requireAuth, async (req, res) => {
         slug, name, website, sector, logo_url, social_links,
         business_description, audience, services, communication_style,
         visual_identity, photo_types, avoid_elements, verified_info,
-        restrictions, colors
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+        restrictions, facebook, instagram, temporary_info, colors
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
       RETURNING *
     `, [
       slug, name.trim(), website || null, sector || null, logoUrl || null,
@@ -1112,6 +1124,7 @@ app.post('/api/clients', requireAuth, async (req, res) => {
       businessDescription || null, audience || null, services || null,
       communicationStyle || null, visualIdentity || null, photoTypes || null,
       avoidElements || null, verifiedInfo || null, restrictions || null,
+      facebook || null, instagram || null, temporaryInfo || null,
       colors ? JSON.stringify(colors) : null,
     ]);
     res.status(201).json({ client: rowToClient(rows[0]) });
@@ -1130,7 +1143,7 @@ app.patch('/api/clients/:id', requireAuth, async (req, res) => {
     'name','website','sector','logo_url','social_links',
     'business_description','audience','services','communication_style',
     'visual_identity','photo_types','avoid_elements','verified_info',
-    'restrictions','colors','status',
+    'restrictions','facebook','instagram','temporary_info','colors','status',
   ];
 
   // Mapeo camelCase → snake_case
@@ -1141,7 +1154,8 @@ app.patch('/api/clients/:id', requireAuth, async (req, res) => {
     services:'services', communicationStyle:'communication_style',
     visualIdentity:'visual_identity', photoTypes:'photo_types',
     avoidElements:'avoid_elements', verifiedInfo:'verified_info',
-    restrictions:'restrictions', colors:'colors', status:'status',
+    restrictions:'restrictions', facebook:'facebook', instagram:'instagram',
+    temporaryInfo:'temporary_info', colors:'colors', status:'status',
   };
 
   const fields = [];
