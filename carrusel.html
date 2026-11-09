@@ -165,6 +165,33 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
 .confirm-row button{padding:9px 20px;border-radius:7px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
 .confirm-cancel{border:1px solid var(--border);background:var(--surface2);color:var(--text);}
 .confirm-ok{border:none;background:var(--accent);color:#fff;font-weight:700;}
+
+/* ── Clientes ── */
+.client-modal-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.72);
+  backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;}
+.client-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+.client-modal-hdr{padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;}
+.client-modal-hdr h2{font-size:15px;font-weight:800;letter-spacing:-.2px;}
+.client-modal-body{padding:16px 20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:10px;}
+.client-modal-ftr{padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;flex-shrink:0;}
+.btn-new-client{display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:7px;
+  border:1.5px dashed var(--accent);background:var(--accent-dim);color:var(--accent);
+  font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
+.btn-new-client:hover{background:var(--accent);color:#fff;}
+.client-list-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;
+  background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.client-list-item:hover{border-color:var(--accent);}
+.client-list-item.selected{border-color:var(--accent);background:var(--accent-dim);}
+.client-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.client-name{font-size:13px;font-weight:600;flex:1;}
+.client-sector{font-size:10px;color:var(--muted);}
+.auth-modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.8);
+  backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;}
+.auth-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  width:100%;max-width:360px;padding:28px 24px;text-align:center;}
 </style>
 
 <div id="app">
@@ -182,7 +209,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
       </div>
     </div>
     <div class="hdr-right">
-      <span class="demo-badge" id="ai-mode-badge">⚪ IA sin comprobar</span>
+      <span class="demo-badge">⚡ Modo demostración — sin IA conectada</span>
       <div class="mode-toggle">
         <button class="mode-btn active" id="btn-auto" onclick="switchMode('auto')">⚡ Automática</button>
         <button class="mode-btn" id="btn-manual" onclick="switchMode('manual')">✏️ Manual</button>
@@ -210,7 +237,10 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
 
       <!-- Brand -->
       <div class="panel" style="margin-bottom:12px;">
-        <div class="pnl-title">Marca activa</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="pnl-title" style="margin:0;">Marca activa</div>
+          <button class="btn-new-client" onclick="openClientManager()">➕ Nuevo cliente</button>
+        </div>
         <div class="brand-row">
           <div class="form-group" style="margin:0">
             <select id="brand-select" onchange="changeBrand(this.value)">
@@ -264,7 +294,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
         </div>
         <div class="sep row2">
           <div class="form-group"><label>Diapositivas</label>
-            <select id="a-count"><option value="0">Auto (5-7)</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+            <select id="a-count"><option value="0">Auto (5-7)</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
           </div>
           <div class="form-group"><label>&nbsp;</label>
             <button class="btn-gen" onclick="runAuto()">
@@ -305,7 +335,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--accent);
         </div>
         <div class="sep row2">
           <div class="form-group"><label>Diapositivas</label>
-            <select id="m-count"><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+            <select id="m-count"><option value="5">5</option><option value="6" selected>6</option><option value="7">7</option><option value="8">8</option></select>
           </div>
           <div class="form-group"><label>&nbsp;</label>
             <button class="btn-gen" onclick="runManual()">
@@ -394,21 +424,21 @@ const BRANDS = {
 // ═══════════════════════════════════════════
 const DEFAULT_BRAND_PROFILES = {
   pasarela: {
-    businessDescription: 'Proyecto editorial y de formación vinculado al modelaje, la pasarela y la moda. Verificar ubicación y oferta antes de anunciar.',
+    businessDescription: 'Escuela profesional de modelaje, pasarela, fotopose, expresión corporal e imagen personal, ubicada en el área de Dallas, Texas.',
     sector: 'Moda, modelaje y desarrollo personal',
     audience: 'Jóvenes y adultos de 15–45 años interesados en modelaje profesional, fotografía de moda, imagen personal y desarrollo de confianza.',
-    services: 'Temas de interés: pasarela, fotopose, expresión corporal e imagen personal. Confirmar qué actividades se ofrecen antes de publicitarlas.',
-    communicationStyle: 'Editorial de revista de moda: concreto, elegante, humano y visual. Evita frases motivacionales genéricas y promesas de transformación.',
+    services: 'Clases de pasarela, fotopose, expresión corporal, imagen personal, maquillaje artístico, sesiones fotográficas profesionales, talleres de confianza y presencia escénica.',
+    communicationStyle: 'Aspiracional, elegante y motivador. Destaca la transformación personal, la confianza y el mundo de la moda profesional.',
     visualIdentity: 'Paleta dorada, negra y vino tinto. Estética de alta costura, elegante, sofisticada y profesional.',
     photoTypes: 'Modelos en pasarela de moda, sesiones fotográficas de moda, backstage de fashion show, poses profesionales en estudio con iluminación dramática, telas lujosas y accesorios de moda, luces de pasarela, backstage elegante, mujeres y hombres con ropa de moda.',
     avoidElements: 'Aulas escolares tradicionales, pizarras, escritorios de colegio, libros de texto, uniformes escolares, contextos universitarios genéricos, niños estudiando en clase.',
-    verifiedInfo: 'Marca Pasarela Studio Internacional, vinculada a moda y modelaje. Solo usar las inscripciones abiertas cuando se indique en el tema; no se han confirmado servicios específicos, certificaciones ni oportunidades de casting.',
+    verifiedInfo: 'Escuela ubicada en el área de Dallas, Texas. Programas de modelaje profesional. Web: pasarelastudio.com.',
     restrictions: 'No inventar precios exactos, fechas de inscripción específicas, ni nombres de programas o instructores sin confirmación. Usar frases como "solicita información" o "descubre nuestros programas" en lugar de afirmaciones sobre disponibilidad o costo.',
   },
   rocimar: {
-    businessDescription: 'Medio de noticias y comunidad conducido por Rocimar Morales, con cobertura de Cabimas y el estado Zulia, Venezuela.',
+    businessDescription: 'Canal de noticias y análisis periodístico conducido por Rocimar Morales, enfocado en la comunidad latina.',
     sector: 'Medios de comunicación, periodismo digital',
-    audience: 'Habitantes de Cabimas, el Zulia y venezolanos interesados en información local y comunitaria.',
+    audience: 'Comunidad latina en Estados Unidos interesada en noticias actuales, política y cultura.',
     services: 'Cobertura de noticias, análisis político, reportajes de actualidad, entrevistas.',
     communicationStyle: 'Informativo, neutral y profesional. Basado estrictamente en hechos verificados.',
     visualIdentity: 'Paleta rojo, azul marino y blanco. Estética periodística profesional.',
@@ -418,10 +448,10 @@ const DEFAULT_BRAND_PROFILES = {
     restrictions: 'No inventar hechos, cifras, declaraciones ni fechas. Usar únicamente información proporcionada en el texto del artículo.',
   },
   fancy: {
-    businessDescription: 'Revista digital Fancy by Roxette, con secciones HOME, BEAUTY, STYLE y TECH; comienza por HOME.',
+    businessDescription: 'Marca de moda y estilo personal de Roxette para mujeres latinas.',
     sector: 'Moda, estilo personal, belleza',
     audience: 'Mujeres latinas de 20–45 años interesadas en moda, tendencias y estilo personal.',
-    services: 'Reseñas editoriales y recomendaciones de productos para HOME, BEAUTY, STYLE y TECH; no afirmar que se ofrecen servicios de asesoría.',
+    services: 'Asesoría de imagen, looks de moda, tendencias, estilo personal.',
     communicationStyle: 'Sofisticado, femenino, aspiracional y cercano.',
     visualIdentity: 'Paleta rosa, morado y dorado. Estética glamurosa, femenina y elegante.',
     photoTypes: 'Moda femenina, accesorios de lujo, looks elegantes, sesiones fotográficas de moda, detalles de telas y joyería.',
@@ -454,10 +484,10 @@ const DEFAULT_BRAND_PROFILES = {
     restrictions: 'No inventar testimonios, milagros específicos ni promesas de resultados.',
   },
   latina768: {
-    businessDescription: 'Consultoría de marketing digital, automatización e inteligencia artificial para negocios.',
+    businessDescription: 'Agencia de servicios para la comunidad latina en Dallas: seguros de vida y salud, bienes raíces e inversiones, y marketing digital.',
     sector: 'Servicios profesionales para la comunidad latina',
     audience: 'Familias y emprendedores latinos en Texas y Estados Unidos.',
-    services: 'Consultoría de marketing, automatización, desarrollo web, generación de prospectos e integración de IA.',
+    services: 'Seguros de vida y salud, bienes raíces, marketing digital, generación de leads, consultoría empresarial.',
     communicationStyle: 'Profesional, confiable, cercano y orientado a soluciones para la comunidad latina.',
     visualIdentity: 'Paleta naranja, azul marino y blanco. Estética profesional, moderna y confiable.',
     photoTypes: 'Familias latinas felices, hogares modernos, apretones de mano profesionales, oficinas, documentos, llaves de casa, mapas de Texas.',
@@ -482,7 +512,7 @@ const DEFAULT_BRAND_PROFILES = {
 // ── Carga / guarda perfiles en localStorage ────────────────────────────────
 function loadBrandProfiles() {
   try {
-    const saved = localStorage.getItem('carrusel_brand_profiles_v2');
+    const saved = localStorage.getItem('carrusel_brand_profiles');
     if (!saved) return JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES));
     const parsed = JSON.parse(saved);
     // Merge: defaults primero, encima los guardados (nuevas marcas se agregan automáticamente)
@@ -494,7 +524,7 @@ function loadBrandProfiles() {
   } catch { return JSON.parse(JSON.stringify(DEFAULT_BRAND_PROFILES)); }
 }
 function saveBrandProfiles(profiles) {
-  try { localStorage.setItem('carrusel_brand_profiles_v2', JSON.stringify(profiles)); } catch {}
+  try { localStorage.setItem('carrusel_brand_profiles', JSON.stringify(profiles)); } catch {}
 }
 let brandProfiles = loadBrandProfiles();
 
@@ -1326,19 +1356,13 @@ async function checkHealth() {
     if (data.status === 'ok') {
       statusEl.className = 'ai-status ok';
       statusEl.textContent = `✅ Conectado — ${data.service}`;
-      const badge = document.getElementById('ai-mode-badge');
-      if (badge) badge.textContent = '✅ IA conectada';
     } else {
       statusEl.className = 'ai-status err';
       statusEl.textContent = '⚠️ El servidor respondió con estado inesperado.';
-      const badge = document.getElementById('ai-mode-badge');
-      if (badge) badge.textContent = '⚠️ IA no confirmada';
     }
   } catch(e) {
     statusEl.className = 'ai-status err';
     statusEl.textContent = '❌ No se pudo conectar. Verifica la URL y que el backend esté activo.';
-    const badge = document.getElementById('ai-mode-badge');
-    if (badge) badge.textContent = '❌ IA sin conexión';
   }
 }
 
@@ -1394,7 +1418,7 @@ async function generateImage(slideIndex) {
     slides[slideIndex].photoScale = 1.0;
     await redrawSlide(slideIndex);
     buildEditPanel(slideIndex);
-    const cost = data.estimatedCost ? `~${Number(data.estimatedCost).toFixed(3)}` : 'costo variable';
+    const cost = data.estimatedCost ? `~$${data.estimatedCost.toFixed(3)}` : '~$0.015';
     toast(`✅ Imagen generada · ${cost} · ${data.model || 'gpt-image-1'}`);
 
   } catch(e) {
@@ -1426,10 +1450,10 @@ async function generateAllImages() {
   }
 
   const n = withPrompts.length;
-  const cost = 'Consulta el precio vigente en tu cuenta de OpenAI';
+  const cost = (n * 0.015).toFixed(2);
   const confirmed = await confirmDialog(
     '🎨 Generación de imágenes con IA',
-    `${n} imágenes con costo variable. ${cost}.\n\nSe generarán una por una.`, 
+    `${n} láminas × $0.015 (gpt-image-1 · calidad media)\n\nCosto estimado: ~$${cost} USD\n\nSe generarán una por una.`,
   );
   if (!confirmed) return;
 
@@ -1471,8 +1495,8 @@ async function generateAllImages() {
 
   if (btn) { btn.disabled = false; btn.textContent = '🎨 Imágenes'; }
   if (cur < slides.length) buildEditPanel(cur);
-  const totalCost = 'Consulta el consumo real en OpenAI';
-  toast(`✅ ${generated} imágenes generadas. ${totalCost}`);
+  const totalCost = (generated * 0.015).toFixed(2);
+  toast(`✅ ${generated} imágenes generadas · ~$${totalCost} USD total`);
 }
 
 // Modal de confirmación — devuelve Promise<boolean>
@@ -1516,7 +1540,7 @@ async function generateWithAI(mode) {
 
   if (mode === 'auto') {
     topic = document.getElementById('a-text').value.trim();
-    if (topic.length < 5) { toast('⚠️ Escribe el tema antes de usar la IA.', 'error'); return; }
+    if (topic.length < 20) { toast('⚠️ Pega el texto del artículo antes de usar la IA.', 'error'); return; }
     count = parseInt(document.getElementById('a-count').value) || 5;
     cat = getActiveCat('a-cats');
     tone = 'Profesional'; audience = 'General';
@@ -1591,7 +1615,514 @@ async function generateWithAI(mode) {
     btn.innerHTML = '✨ Generar con IA';
   }
 }
+
+// ═══════════════════════════════════════════
+// GESTIÓN DE CLIENTES — Fase 1
+// ═══════════════════════════════════════════
+
+// ── Auth ────────────────────────────────────
+function getAccessKey() {
+  return sessionStorage.getItem('carrusel_access_key') || '';
+}
+function setAccessKey(key) {
+  sessionStorage.setItem('carrusel_access_key', key);
+}
+
+function openAuthModal(callback) {
+  const modal = document.getElementById('auth-modal');
+  modal.style.display = 'flex';
+  modal.dataset.callback = '';
+  window._authCallback = callback;
+  document.getElementById('auth-key-input').value = '';
+  document.getElementById('auth-error').style.display = 'none';
+  setTimeout(() => document.getElementById('auth-key-input').focus(), 100);
+}
+function closeAuthModal() {
+  document.getElementById('auth-modal').style.display = 'none';
+  window._authCallback = null;
+}
+async function submitAuthKey() {
+  const key = document.getElementById('auth-key-input').value.trim();
+  setAccessKey(key);
+  const errEl = document.getElementById('auth-error');
+  // Verificar con el backend
+  const base = getBackendUrl();
+  if (base) {
+    try {
+      const r = await fetch(`${base}/api/clients`, {
+        headers: { 'Content-Type': 'application/json', 'x-access-key': key },
+      });
+      if (r.status === 401) {
+        errEl.textContent = 'Clave incorrecta. Inténtalo de nuevo.';
+        errEl.style.display = 'block';
+        setAccessKey('');
+        return;
+      }
+    } catch {}
+  }
+  closeAuthModal();
+  if (typeof window._authCallback === 'function') window._authCallback();
+}
+
+// ── Client Manager ──────────────────────────
+let clientsCache = [];
+
+async function openClientManager() {
+  const base = getBackendUrl();
+  if (!base) {
+    toast('⚠️ Configura la URL del backend primero.', 'error');
+    const body = document.getElementById('ai-config-body');
+    if (body.hidden) toggleAIConfig();
+    return;
+  }
+
+  // Mostrar modal inmediatamente
+  document.getElementById('client-manager-modal').style.display = 'flex';
+  showClientListView();
+  loadClientList();
+}
+
+function closeClientManager() {
+  document.getElementById('client-manager-modal').style.display = 'none';
+}
+
+function showClientListView() {
+  document.getElementById('client-list-view').style.display = 'flex';
+  document.getElementById('client-list-view-ftr').style.display = 'flex';
+  document.getElementById('client-form-view').style.display = 'none';
+  document.getElementById('client-form-view-ftr').style.display = 'none';
+  document.getElementById('client-modal-title').textContent = '👥 Clientes';
+  document.getElementById('client-modal-subtitle').textContent = 'Selecciona o crea un cliente';
+}
+
+async function loadClientList() {
+  const base = getBackendUrl();
+  const loading = document.getElementById('client-list-loading');
+  const listEl = document.getElementById('client-list-items');
+  loading.style.display = 'block';
+  listEl.innerHTML = '';
+
+  const doLoad = async (key) => {
+    try {
+      const r = await fetch(`${base}/api/clients`, {
+        headers: { 'x-access-key': key },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (r.status === 401) {
+        loading.style.display = 'none';
+        // Pedir clave
+        openAuthModal(() => loadClientList());
+        return;
+      }
+      const data = await r.json();
+      clientsCache = data.clients || [];
+      renderClientList();
+    } catch (err) {
+      loading.style.display = 'none';
+      listEl.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12px;padding:16px;">
+        ❌ No se pudo conectar al backend.<br>Verifica la URL en Configuración de IA.
+      </div>`;
+    }
+  };
+
+  await doLoad(getAccessKey());
+}
+
+function renderClientList() {
+  const loading = document.getElementById('client-list-loading');
+  const listEl = document.getElementById('client-list-items');
+  loading.style.display = 'none';
+
+  if (!clientsCache.length) {
+    listEl.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px;">
+      No hay clientes registrados aún.<br>Crea el primero con el botón de abajo.
+    </div>`;
+    return;
+  }
+
+  listEl.innerHTML = clientsCache.map(c => {
+    const accent = c.colors?.accent || '#818CF8';
+    const isActive = c.slug === activeBrandId || c.id === activeBrandId;
+    return `<div class="client-list-item${isActive ? ' selected' : ''}" onclick="selectClientFromList('${c.slug || c.id}', '${c.name.replace(/'/g,"\\'")}')">
+      <div class="client-dot" style="background:${accent}"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="client-name">${c.name}</div>
+        ${c.sector ? `<div class="client-sector">${c.sector}</div>` : ''}
+      </div>
+      <button onclick="event.stopPropagation();editClient('${c.slug || c.id}')" title="Editar"
+        style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;">✏️</button>
+    </div>`;
+  }).join('');
+}
+
+async function selectClientFromList(idOrSlug, name) {
+  const base = getBackendUrl();
+  try {
+    const r = await fetch(`${base}/api/clients/${idOrSlug}`, {
+      headers: { 'x-access-key': getAccessKey() },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) { toast('❌ Error al cargar el perfil.', 'error'); return; }
+    const { client } = await r.json();
+    applyClientToBrandEngine(client);
+    closeClientManager();
+    toast(`✅ Cliente "${client.name}" activado.`);
+  } catch {
+    toast('❌ No se pudo cargar el perfil del cliente.', 'error');
+  }
+}
+
+function applyClientToBrandEngine(client) {
+  const id = client.slug || client.id;
+
+  // 1. Si ya existe en BRANDS, actualiza; si no, crea entrada dinámica
+  BRANDS[id] = {
+    name: client.name,
+    web: client.website || (client.socialLinks && Object.values(client.socialLinks)[0]) || '',
+    cta: 'Solicita información hoy',
+    c: client.colors && Object.keys(client.colors).length > 0 ? client.colors : BRANDS.custom.c,
+    logo: client.logoUrl || null,
+  };
+
+  // 2. Guardar perfil de marca
+  brandProfiles[id] = {
+    businessDescription: client.businessDescription || '',
+    sector: client.sector || '',
+    audience: client.audience || '',
+    services: client.services || '',
+    communicationStyle: client.communicationStyle || '',
+    visualIdentity: client.visualIdentity || '',
+    photoTypes: client.photoTypes || '',
+    avoidElements: client.avoidElements || '',
+    verifiedInfo: client.verifiedInfo || '',
+    restrictions: client.restrictions || '',
+  };
+  saveBrandProfiles(brandProfiles);
+
+  // 3. Agregar al selector si no existe
+  const sel = document.getElementById('brand-select');
+  if (!sel.querySelector(`option[value="${id}"]`)) {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `🏢 ${client.name}`;
+    sel.insertBefore(opt, sel.lastElementChild); // antes de "Marca personalizada"
+  }
+
+  // 4. Activar
+  sel.value = id;
+  changeBrand(id);
+}
+
+function showNewClientForm(editId) {
+  document.getElementById('client-list-view').style.display = 'none';
+  document.getElementById('client-list-view-ftr').style.display = 'none';
+  document.getElementById('client-form-view').style.display = 'flex';
+  document.getElementById('client-form-view-ftr').style.display = 'flex';
+
+  if (editId) {
+    document.getElementById('client-modal-title').textContent = '✏️ Editar cliente';
+    document.getElementById('client-modal-subtitle').textContent = 'Modifica el perfil de este cliente';
+    document.getElementById('cf-editing-id').value = editId;
+  } else {
+    document.getElementById('client-modal-title').textContent = '➕ Nuevo cliente';
+    document.getElementById('client-modal-subtitle').textContent = 'Completa el perfil del negocio';
+    document.getElementById('cf-editing-id').value = '';
+    clearClientForm();
+  }
+}
+
+function clearClientForm() {
+  ['cf-name','cf-website','cf-sector','cf-description','cf-services',
+   'cf-audience','cf-style','cf-photos','cf-avoid','cf-restrictions','cf-social']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+
+function backToClientList() {
+  showClientListView();
+}
+
+async function editClient(idOrSlug) {
+  const base = getBackendUrl();
+  try {
+    const r = await fetch(`${base}/api/clients/${idOrSlug}`, {
+      headers: { 'x-access-key': getAccessKey() },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) { toast('❌ No se pudo cargar el cliente.', 'error'); return; }
+    const { client } = await r.json();
+    // Rellenar formulario
+    document.getElementById('cf-name').value         = client.name || '';
+    document.getElementById('cf-website').value      = client.website || '';
+    document.getElementById('cf-sector').value       = client.sector || '';
+    document.getElementById('cf-description').value  = client.businessDescription || '';
+    document.getElementById('cf-services').value     = client.services || '';
+    document.getElementById('cf-audience').value     = client.audience || '';
+    document.getElementById('cf-style').value        = client.communicationStyle || '';
+    document.getElementById('cf-photos').value       = client.photoTypes || '';
+    document.getElementById('cf-avoid').value        = client.avoidElements || '';
+    document.getElementById('cf-restrictions').value = `${client.verifiedInfo || ''}\n${client.restrictions || ''}`.trim();
+    const social = client.socialLinks ? Object.values(client.socialLinks).join(', ') : '';
+    document.getElementById('cf-social').value = social;
+    showNewClientForm(client.slug || client.id);
+  } catch {
+    toast('❌ Error al cargar el cliente.', 'error');
+  }
+}
+
+async function saveClientProfile() {
+  const name = document.getElementById('cf-name').value.trim();
+  if (!name) { toast('⚠️ El nombre comercial es obligatorio.', 'error'); document.getElementById('cf-name').focus(); return; }
+
+  const editingId = document.getElementById('cf-editing-id').value;
+  const restrictionsRaw = document.getElementById('cf-restrictions').value.trim();
+  const socialRaw = document.getElementById('cf-social').value.trim();
+
+  const payload = {
+    name,
+    website: document.getElementById('cf-website').value.trim() || null,
+    sector: document.getElementById('cf-sector').value.trim() || null,
+    businessDescription: document.getElementById('cf-description').value.trim() || null,
+    services: document.getElementById('cf-services').value.trim() || null,
+    audience: document.getElementById('cf-audience').value.trim() || null,
+    communicationStyle: document.getElementById('cf-style').value.trim() || null,
+    photoTypes: document.getElementById('cf-photos').value.trim() || null,
+    avoidElements: document.getElementById('cf-avoid').value.trim() || null,
+    verifiedInfo: null,
+    restrictions: restrictionsRaw || null,
+    socialLinks: socialRaw ? { social: socialRaw } : null,
+  };
+
+  const base = getBackendUrl();
+  const saveBtn = document.querySelector('#client-form-view-ftr button:last-child');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Guardando…';
+
+  try {
+    const url = editingId
+      ? `${base}/api/clients/${editingId}`
+      : `${base}/api/clients`;
+    const method = editingId ? 'PATCH' : 'POST';
+
+    const r = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'x-access-key': getAccessKey() },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (r.status === 401) {
+      openAuthModal(() => saveClientProfile());
+      return;
+    }
+    if (!r.ok) {
+      const data = await r.json();
+      toast('❌ ' + (data.error || 'Error al guardar.'), 'error');
+      return;
+    }
+
+    const { client } = await r.json();
+    toast(`✅ Cliente "${client.name}" guardado.`);
+    applyClientToBrandEngine(client);
+    closeClientManager();
+    // Recargar cache
+    clientsCache = [];
+
+  } catch (err) {
+    toast('❌ Error de conexión: ' + err.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Guardar cliente';
+  }
+}
+
+// Mostrar/ocultar sección de análisis cuando se escribe una URL
+document.addEventListener('DOMContentLoaded', () => {
+  const webInput = document.getElementById('cf-website');
+  if (webInput) {
+    webInput.addEventListener('input', () => {
+      const row = document.getElementById('cf-analyze-row');
+      row.style.display = webInput.value.trim().length > 6 ? 'block' : 'none';
+    });
+  }
+});
+
+// analyzeWebsite — Fase 2 (placeholder)
+async function analyzeWebsite() {
+  const url = document.getElementById('cf-website').value.trim();
+  if (!url) return;
+  const base = getBackendUrl();
+  if (!base) { toast('⚠️ Configura la URL del backend.', 'error'); return; }
+
+  const btn = document.getElementById('btn-analyze-web');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Analizando sitio…';
+
+  try {
+    const r = await fetch(`${base}/api/clients/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-access-key': getAccessKey() },
+      body: JSON.stringify({ url }),
+      signal: AbortSignal.timeout(60000),
+    });
+
+    if (r.status === 404) {
+      toast('⏳ El análisis automático estará disponible pronto (Fase 2).', 'info');
+      return;
+    }
+    if (!r.ok) {
+      const d = await r.json();
+      toast('❌ ' + (d.error || 'Error al analizar.'), 'error');
+      return;
+    }
+
+    const { profile } = await r.json();
+    // Rellenar formulario con los datos extraídos
+    if (profile.name && !document.getElementById('cf-name').value) document.getElementById('cf-name').value = profile.name;
+    if (profile.sector) document.getElementById('cf-sector').value = profile.sector;
+    if (profile.businessDescription) document.getElementById('cf-description').value = profile.businessDescription;
+    if (profile.services) document.getElementById('cf-services').value = profile.services;
+    if (profile.audience) document.getElementById('cf-audience').value = profile.audience;
+    if (profile.communicationStyle) document.getElementById('cf-style').value = profile.communicationStyle;
+    if (profile.photoTypes) document.getElementById('cf-photos').value = profile.photoTypes;
+    toast('✅ Perfil extraído del sitio. Revisa y ajusta antes de guardar.', 'info');
+
+  } catch (err) {
+    if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+      toast('⏱ El análisis tardó demasiado. Completa el perfil manualmente.', 'error');
+    } else {
+      toast('❌ No se pudo analizar el sitio: ' + err.message, 'error');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🌐 Analizar sitio web con IA';
+  }
+}
 </script>
+
+<!-- ═══ MODAL: Autenticación de clientes ════════════════════════════════ -->
+<div id="auth-modal" style="display:none" class="auth-modal-overlay">
+  <div class="auth-modal">
+    <div style="font-size:28px;margin-bottom:12px;">🔐</div>
+    <h2 style="font-size:16px;font-weight:800;margin-bottom:6px;">Acceso al panel de clientes</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5;">
+      Introduce tu clave de acceso para gestionar los perfiles de clientes.
+    </p>
+    <input type="password" id="auth-key-input" placeholder="Clave de acceso"
+      style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;
+      background:var(--surface2);color:var(--text);font-size:14px;font-family:inherit;
+      margin-bottom:12px;text-align:center;"
+      onkeydown="if(event.key==='Enter') submitAuthKey()">
+    <div id="auth-error" style="display:none;color:#EF4444;font-size:11px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeAuthModal()" style="flex:1;padding:9px;border-radius:7px;border:1px solid var(--border);
+        background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+        Cancelar
+      </button>
+      <button onclick="submitAuthKey()" style="flex:2;padding:9px;border-radius:7px;border:none;
+        background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+        Acceder
+      </button>
+    </div>
+    <p style="font-size:10px;color:var(--muted);margin-top:12px;">
+      Sin clave configurada en el backend: acceso libre en modo desarrollo.
+    </p>
+  </div>
+</div>
+
+<!-- ═══ MODAL: Gestión de clientes ══════════════════════════════════════ -->
+<div id="client-manager-modal" style="display:none" class="client-modal-overlay">
+  <div class="client-modal">
+    <div class="client-modal-hdr">
+      <div>
+        <h2 id="client-modal-title">👥 Clientes</h2>
+        <div id="client-modal-subtitle" style="font-size:11px;color:var(--muted);margin-top:2px;">Selecciona o crea un cliente</div>
+      </div>
+      <button onclick="closeClientManager()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:22px;line-height:1;padding:4px;">×</button>
+    </div>
+    <!-- Vista: lista de clientes -->
+    <div id="client-list-view" class="client-modal-body">
+      <div id="client-list-loading" style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">
+        <span class="spinner" style="border-color:rgba(100,100,255,.3);border-top-color:var(--accent);"></span>
+        Cargando clientes…
+      </div>
+      <div id="client-list-items" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+    <div id="client-list-view-ftr" class="client-modal-ftr">
+      <button onclick="showNewClientForm()" style="padding:9px 18px;border-radius:8px;border:none;
+        background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+        ➕ Nuevo cliente
+      </button>
+    </div>
+
+    <!-- Vista: formulario nuevo/editar cliente -->
+    <div id="client-form-view" style="display:none" class="client-modal-body">
+      <div class="form-group">
+        <label>Nombre comercial <span style="color:#EF4444">*</span></label>
+        <input type="text" id="cf-name" placeholder="Ej: Pasarela Studio Internacional">
+      </div>
+      <div class="row2">
+        <div class="form-group"><label>Sitio web <span class="hint">opcional</span></label>
+          <input type="url" id="cf-website" placeholder="https://tudominio.com"></div>
+        <div class="form-group"><label>Sector</label>
+          <input type="text" id="cf-sector" placeholder="Ej: Moda, educación…"></div>
+      </div>
+      <div class="form-group">
+        <label>Descripción del negocio <span class="hint">opcional</span></label>
+        <textarea id="cf-description" placeholder="¿Qué hace este negocio? ¿Dónde opera?" style="min-height:70px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Servicios principales</label>
+        <textarea id="cf-services" placeholder="Lista los servicios o productos reales del negocio" style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Público objetivo</label>
+        <input type="text" id="cf-audience" placeholder="Ej: Mujeres de 25–45 años en Texas">
+      </div>
+      <div class="form-group">
+        <label>Estilo de comunicación</label>
+        <input type="text" id="cf-style" placeholder="Ej: Aspiracional, cercano, profesional">
+      </div>
+      <div class="form-group">
+        <label>Tipo de fotografías recomendadas</label>
+        <textarea id="cf-photos" placeholder="Ej: Modelos en pasarela, estudio con iluminación dramática…" style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Elementos a EVITAR en imágenes</label>
+        <input type="text" id="cf-avoid" placeholder="Ej: Aulas escolares, genérico, low-budget">
+      </div>
+      <div class="form-group">
+        <label>Información verificada / restricciones</label>
+        <textarea id="cf-restrictions" placeholder="Ej: No inventar precios. Usar 'solicita información'." style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Redes sociales <span class="hint">opcional</span></label>
+        <input type="text" id="cf-social" placeholder="@usuario o https://instagram.com/usuario">
+      </div>
+      <div id="cf-analyze-row" style="display:none;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);">
+        <div style="font-size:11px;font-weight:700;margin-bottom:6px;">🤖 Análisis automático con IA</div>
+        <p style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;">
+          El sistema visitará el sitio web, extraerá información pública y completará el perfil automáticamente. Podrás revisarlo antes de guardarlo.
+        </p>
+        <button onclick="analyzeWebsite()" id="btn-analyze-web" style="width:100%;padding:9px;border-radius:7px;border:none;
+          background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;font-size:12px;font-weight:700;
+          cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+          🌐 Analizar sitio web con IA
+        </button>
+      </div>
+    </div>
+    <div id="client-form-view-ftr" style="display:none" class="client-modal-ftr">
+      <input type="hidden" id="cf-editing-id">
+      <button onclick="backToClientList()" style="padding:9px 14px;border-radius:8px;border:1px solid var(--border);
+        background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+        ← Volver
+      </button>
+      <button onclick="saveClientProfile()" style="padding:9px 20px;border-radius:8px;border:none;
+        background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+        💾 Guardar cliente
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ MODAL: Perfil de marca IA ═══════════════════════════════════════ -->
 <div id="profile-editor-modal" style="display:none;position:fixed;inset:0;z-index:9999;
