@@ -564,6 +564,191 @@ app.post('/api/carousel/image', imageLimiter, async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ANÁLISIS DE SITIOS WEB — Fase 2
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── SSRF Protection ────────────────────────────────────────────────────────
+const PRIVATE_PATTERNS = [
+  /^localhost$/i,
+  /^127\./,
+  /^0\.0\.0\.0$/,
+  /^10\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+  /^169\.254\./,
+  /^::1$/,
+  /^\[::1\]$/,
+  /^fc00:/i,
+  /^fe80:/i,
+  /metadata\.(google|internal|aws)/i,
+];
+
+function isSafeUrl(urlStr) {
+  let parsed;
+  try { parsed = new URL(urlStr.trim()); } catch { return { safe: false, reason: 'URL inválida. Verifica el formato.' }; }
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    return { safe: false, reason: 'Solo se permiten URLs http o https.' };
+  }
+  const host = parsed.hostname.toLowerCase();
+  for (const p of PRIVATE_PATTERNS) {
+    if (p.test(host)) return { safe: false, reason: 'URL no permitida por políticas de seguridad.' };
+  }
+  return { safe: true, parsed };
+}
+
+// ─── Fetch seguro con timeout y límite de tamaño ────────────────────────────
+async function safeFetch(url, timeoutMs = 9000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, {
+      signal: ctrl.signal,
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'CarruselBot/2.0 (perfil-comercial)',
+        'Accept': 'text/html,application/xhtml+xml,*/*;q=0.8',
+        'Accept-Language': 'es,en;q=0.9',
+      },
+    });
+    clearTimeout(timer);
+    if (!r.ok) return null;
+    // Leer máximo 250 KB
+    const MAX = 250 * 1024;
+    const reader = r.body.getReader();
+    const chunks = [];
+    let total = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.length;
+      chunks.push(value);
+      if (total >= MAX) { reader.cancel(); break; }
+    }
+    const buf = Buffer.concat(chunks.map(c => Buffer.from(c)));
+    return { text: buf.toString('utf-8'), finalUrl: r.url };
+  } catch {
+    clearTimeout(timer);
+    return null;
+  }
+}
+
+// ─── Limpiar HTML → texto plano ─────────────────────────────────────────────
+function htmlToText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+    .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 4500);
+}
+
+const analyzeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 4,
+  message: { error: 'Demasiados análisis en poco tiempo. Espera un minuto.' },
+});
+
+// ─── POST /api/clients/analyze ───────────────────────────────────────────────
+app.post('/api/clients/analyze', requireAuth, analyzeLimiter, async (req, res) => {
+  const { url } = req.body;
+  if (!url || typeof url !== 'string' || url.trim().length < 6) {
+    return res.status(400).json({ error: 'Se requiere una URL válida del sitio web.' });
+  }
+
+  // 1. SSRF check
+  const safety = isSafeUrl(url.trim());
+  if (!safety.safe) return res.status(400).json({ error: safety.reason });
+
+  const origin = safety.parsed.origin; // ej: https://pasarelastudiointer.com
+
+  // 2. Intentar obtener varias páginas (máx 4)
+  const pathsToTry = ['/', '/nosotros', '/about', '/quienes-somos',
+    '/servicios', '/services', '/programas', '/contacto', '/contact'];
+  const pages = [];
+  const sourceUrls = [];
+
+  for (const path of pathsToTry) {
+    if (pages.length >= 4) break;
+    const pageUrl = origin + path;
+    const result = await safeFetch(pageUrl, 8000);
+    if (result && result.text && result.text.length > 300) {
+      const text = htmlToText(result.text);
+      if (text.length > 150) {
+        pages.push({ url: result.finalUrl || pageUrl, text });
+        sourceUrls.push(result.finalUrl || pageUrl);
+      }
+    }
+  }
+
+  if (pages.length === 0) {
+    return res.status(422).json({
+      error: 'No se pudo acceder al sitio web. Es posible que esté bloqueado, use JavaScript dinámico o no esté disponible. Puedes completar el perfil manualmente.',
+      canRetryManually: true,
+    });
+  }
+
+  // 3. Enviar a GPT para extracción
+  const contenido = pages
+    .map(p => `=== ${p.url} ===\n${p.text}`)
+    .join('\n\n')
+    .slice(0, 11000);
+
+  const prompt = `Analiza el contenido de este sitio web y extrae información comercial real.
+
+REGLAS ESTRICTAS:
+- Incluye SOLO información presente explícitamente en el texto.
+- Si un dato no está disponible, usa exactamente: "No confirmado"
+- NO inventes servicios, precios, certificaciones, testimonios ni resultados
+- NO agregues suposiciones ni rellenes datos con información genérica
+
+CONTENIDO:
+${contenido}
+
+Responde ÚNICAMENTE con JSON válido:
+{
+  "name": "Nombre comercial exacto del negocio",
+  "sector": "Sector o tipo de negocio (breve)",
+  "businessDescription": "Qué hace el negocio y dónde opera. Máx 120 palabras. Solo lo que dice el sitio.",
+  "services": "Servicios o productos confirmados en el texto, separados por coma",
+  "audience": "Público objetivo mencionado en el texto, o No confirmado",
+  "location": "Ciudad/estado/país si aparece, o No confirmado",
+  "contact": "Teléfono, email o dirección si aparece, o No confirmado",
+  "communicationStyle": "Tono del sitio: formal, aspiracional, cercano, etc.",
+  "photoTypes": "Tipo de imágenes recomendadas según el estilo del negocio",
+  "unverified": ["Dato que no pudo confirmarse 1", "Dato 2"]
+}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.1,
+      max_tokens: 900,
+      response_format: { type: 'json_object' },
+    });
+
+    let profile;
+    try { profile = JSON.parse(completion.choices[0].message.content); }
+    catch { return res.status(502).json({ error: 'Error al procesar la respuesta de IA.' }); }
+
+    return res.json({
+      profile: { ...profile, sourceUrls, analyzedAt: new Date().toISOString() },
+      pagesAnalyzed: pages.length,
+    });
+
+  } catch (err) {
+    console.error('Error analyze:', err.message);
+    if (err.status === 429) return res.status(429).json({ error: 'Límite de OpenAI alcanzado. Espera un momento.' });
+    return res.status(500).json({ error: 'Error al analizar: ' + err.message });
+  }
+});
+
 // ─── GET /api/health ──────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
