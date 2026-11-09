@@ -1,208 +1,28 @@
 /**
- * Carrusel Social AI Engine — Backend Node.js v2.0
- * Deploy en Railway
- * Variables de entorno requeridas: OPENAI_API_KEY
- * Variables opcionales: DATABASE_URL, ACCESS_KEY, ALLOWED_ORIGINS
+ * Carrusel Social AI Engine — Backend Node.js
+ * Deploy en Railway · Variables de entorno requeridas: OPENAI_API_KEY
  */
 
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const OpenAI = require('openai');
-const { Pool } = require('pg');
-const { URL } = require('url');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Railway usa proxy inverso — necesario para express-rate-limit
+// Railway (y la mayoría de PaaS) usan un proxy inverso que añade X-Forwarded-For.
+// Sin esto, express-rate-limit lanza ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
 app.set('trust proxy', 1);
 
 // ─── Validar entorno ────────────────────────────────────────────────────
 if (!process.env.OPENAI_API_KEY) {
-  console.error('❌ OPENAI_API_KEY no está configurada.');
+  console.error('❌ OPENAI_API_KEY no está configurada. Define la variable de entorno antes de iniciar.');
   process.exit(1);
 }
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// ─── PostgreSQL ──────────────────────────────────────────────────────────
-let db = null;
-if (process.env.DATABASE_URL) {
-  db = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-  db.on('error', err => console.error('PostgreSQL error:', err.message));
-} else {
-  console.warn('⚠️  DATABASE_URL no configurada — módulo de clientes desactivado.');
-}
-
-// ─── Inicializar base de datos ───────────────────────────────────────────
-async function initDB() {
-  if (!db) return;
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS clients (
-        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        slug        TEXT UNIQUE,
-        name        TEXT NOT NULL,
-        website     TEXT,
-        sector      TEXT,
-        logo_url    TEXT,
-        social_links TEXT,
-        business_description TEXT,
-        audience    TEXT,
-        services    TEXT,
-        communication_style TEXT,
-        visual_identity TEXT,
-        photo_types TEXT,
-        avoid_elements TEXT,
-        verified_info TEXT,
-        restrictions TEXT,
-        colors      TEXT,
-        source_urls TEXT,
-        analyzed_at TIMESTAMPTZ,
-        status      TEXT DEFAULT 'active',
-        created_at  TIMESTAMPTZ DEFAULT NOW(),
-        updated_at  TIMESTAMPTZ DEFAULT NOW()
-      )
-    `);
-
-    // Seed: perfiles predeterminados (solo si la tabla está vacía)
-    const { rows } = await db.query('SELECT COUNT(*) FROM clients');
-    if (parseInt(rows[0].count) === 0) {
-      await seedDefaultClients();
-    }
-    console.log('✅ Base de datos lista');
-  } catch (err) {
-    console.error('❌ Error inicializando DB:', err.message);
-  }
-}
-
-const DEFAULT_CLIENTS = [
-  {
-    slug: 'rocimar', name: 'Noticias con Rocimar Morales',
-    website: null, sector: 'Medios de comunicación, periodismo digital',
-    social_links: JSON.stringify({ instagram: '@RocimarNoticias' }),
-    business_description: 'Canal de noticias y análisis periodístico conducido por Rocimar Morales, enfocado en la comunidad latina.',
-    audience: 'Comunidad latina en Estados Unidos interesada en noticias actuales, política y cultura.',
-    services: 'Cobertura de noticias, análisis político, reportajes de actualidad, entrevistas.',
-    communication_style: 'Informativo, neutral y profesional. Basado estrictamente en hechos verificados.',
-    visual_identity: 'Paleta rojo, azul marino y blanco. Estética periodística profesional.',
-    photo_types: 'Estudios de noticias, micrófonos, pantallas informativas, ciudades, eventos públicos, personas diversas en contextos noticiosos.',
-    avoid_elements: 'Imágenes sensacionalistas, montajes, contenido no verificado, símbolos partidistas.',
-    verified_info: 'Canal digital. @RocimarNoticias.',
-    restrictions: 'No inventar hechos, cifras, declaraciones ni fechas.',
-    colors: JSON.stringify({ bg1:'#060E20', bg2:'#0F2347', accent:'#E63946', text:'#FFFFFF', sub:'#B0BDD0', badge:'#E63946', badgeTxt:'#fff' }),
-  },
-  {
-    slug: 'pasarela', name: 'Pasarela Studio Internacional',
-    website: 'https://pasarelastudio.com', sector: 'Moda, modelaje y desarrollo personal',
-    social_links: JSON.stringify({ web: 'pasarelastudio.com' }),
-    business_description: 'Escuela profesional de modelaje, pasarela, fotopose, expresión corporal e imagen personal, ubicada en el área de Dallas, Texas.',
-    audience: 'Jóvenes y adultos de 15–45 años interesados en modelaje profesional, fotografía de moda, imagen personal y desarrollo de confianza.',
-    services: 'Clases de pasarela, fotopose, expresión corporal, imagen personal, maquillaje artístico, sesiones fotográficas profesionales, talleres de confianza y presencia escénica.',
-    communication_style: 'Aspiracional, elegante y motivador. Destaca la transformación personal, la confianza y el mundo de la moda profesional.',
-    visual_identity: 'Paleta dorada, negra y vino tinto. Estética de alta costura, elegante, sofisticada y profesional.',
-    photo_types: 'Modelos en pasarela de moda, sesiones fotográficas de moda, backstage de fashion show, poses profesionales en estudio con iluminación dramática, telas lujosas y accesorios de moda.',
-    avoid_elements: 'Aulas escolares tradicionales, pizarras, escritorios de colegio, libros de texto, uniformes escolares.',
-    verified_info: 'Escuela en Dallas, Texas. Web: pasarelastudio.com.',
-    restrictions: 'No inventar precios, fechas de inscripción ni nombres de instructores. Usar "solicita información".',
-    colors: JSON.stringify({ bg1:'#0D0107', bg2:'#7B2D3E', accent:'#C9A84C', text:'#FFFFFF', sub:'#F0E6CF', badge:'#C9A84C', badgeTxt:'#1A040C' }),
-  },
-  {
-    slug: 'fancy', name: 'Fancy by Roxette',
-    website: null, sector: 'Moda, estilo personal, belleza',
-    social_links: JSON.stringify({ instagram: '@FancyByRoxette' }),
-    business_description: 'Marca de moda y estilo personal de Roxette para mujeres latinas.',
-    audience: 'Mujeres latinas de 20–45 años interesadas en moda, tendencias y estilo personal.',
-    services: 'Asesoría de imagen, looks de moda, tendencias, estilo personal.',
-    communication_style: 'Sofisticado, femenino, aspiracional y cercano.',
-    visual_identity: 'Paleta rosa, morado y dorado. Estética glamurosa, femenina y elegante.',
-    photo_types: 'Moda femenina, accesorios de lujo, looks elegantes, detalles de telas y joyería.',
-    avoid_elements: 'Imágenes genéricas sin estilo definido.',
-    verified_info: '@FancyByRoxette.',
-    restrictions: 'No inventar productos disponibles, precios ni fechas sin confirmación.',
-    colors: JSON.stringify({ bg1:'#2D0A2A', bg2:'#8B2063', accent:'#F4A6CD', text:'#FFFFFF', sub:'#F4D6E8', badge:'#F4A6CD', badgeTxt:'#2D0A2A' }),
-  },
-  {
-    slug: 'amares', name: 'Amar Es',
-    website: null, sector: 'Contenido espiritual e inspiracional',
-    social_links: JSON.stringify({ instagram: '@AmarEs' }),
-    business_description: 'Marca de contenido inspiracional sobre amor, fe, relaciones y valores espirituales.',
-    audience: 'Comunidad latina interesada en fe, familia, amor y valores.',
-    services: 'Contenido inspiracional, mensajes de amor y fe, reflexiones.',
-    communication_style: 'Cálido, espiritual, esperanzador y amoroso.',
-    visual_identity: 'Paleta rosa suave, morado y blanco. Estética suave y serena.',
-    photo_types: 'Parejas en momentos tiernos, familias, luz natural suave, flores, naturaleza, símbolos de amor y fe.',
-    avoid_elements: 'Imágenes oscuras, conflictivas o divisivas.',
-    verified_info: '@AmarEs.',
-    restrictions: 'Mantener mensajes positivos. No inventar testimonios.',
-    colors: JSON.stringify({ bg1:'#1A0820', bg2:'#5B1E6E', accent:'#F9A8D4', text:'#FFFFFF', sub:'#EDD5F7', badge:'#F9A8D4', badgeTxt:'#1A0820' }),
-  },
-  {
-    slug: 'maravillas', name: 'Maravillas del Reino',
-    website: null, sector: 'Contenido cristiano y espiritual',
-    social_links: JSON.stringify({ instagram: '@MaravillasDelReino' }),
-    business_description: 'Ministerio cristiano de contenido sobre milagros, fe y esperanza para la comunidad latina.',
-    audience: 'Comunidad latina cristiana interesada en fe, Biblia y milagros.',
-    services: 'Mensajes bíblicos, contenido de fe, testimonios, reflexiones espirituales.',
-    communication_style: 'Inspirador, esperanzador, bíblico y lleno de fe.',
-    visual_identity: 'Paleta azul marino, dorado y blanco. Estética celestial y majestuosa.',
-    photo_types: 'Cielos con luz dorada, iglesias majestuosas, Biblia abierta, cruces, luz divina.',
-    avoid_elements: 'Imágenes controversiales o contrarias a valores cristianos.',
-    verified_info: '@MaravillasDelReino.',
-    restrictions: 'No inventar testimonios ni promesas de resultados.',
-    colors: JSON.stringify({ bg1:'#0C1A3A', bg2:'#1E3F8A', accent:'#FCD34D', text:'#FFFFFF', sub:'#D1DCF8', badge:'#FCD34D', badgeTxt:'#0C1A3A' }),
-  },
-  {
-    slug: 'latina768', name: 'Latina 768 Services',
-    website: 'https://latina768.com', sector: 'Servicios profesionales para la comunidad latina',
-    social_links: JSON.stringify({ web: 'latina768.com' }),
-    business_description: 'Agencia de servicios para la comunidad latina en Dallas: seguros de vida y salud, bienes raíces e inversiones, y marketing digital.',
-    audience: 'Familias y emprendedores latinos en Texas y Estados Unidos.',
-    services: 'Seguros de vida y salud, bienes raíces, marketing digital, generación de leads, consultoría empresarial.',
-    communication_style: 'Profesional, confiable, cercano y orientado a soluciones para la comunidad latina.',
-    visual_identity: 'Paleta naranja, azul marino y blanco. Estética profesional y moderna.',
-    photo_types: 'Familias latinas felices, hogares modernos, apretones de mano profesionales, oficinas, llaves de casa.',
-    avoid_elements: 'Imágenes estereotipadas o de baja calidad.',
-    verified_info: 'latina768.com. Área de Dallas, Texas.',
-    restrictions: 'No inventar coberturas, tasas, disponibilidad de propiedades ni precios.',
-    colors: JSON.stringify({ bg1:'#061020', bg2:'#0E3360', accent:'#F97316', text:'#FFFFFF', sub:'#C4D4E8', badge:'#F97316', badgeTxt:'#fff' }),
-  },
-];
-
-async function seedDefaultClients() {
-  for (const c of DEFAULT_CLIENTS) {
-    await db.query(`
-      INSERT INTO clients (slug, name, website, sector, social_links,
-        business_description, audience, services, communication_style,
-        visual_identity, photo_types, avoid_elements, verified_info,
-        restrictions, colors)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-      ON CONFLICT (slug) DO NOTHING
-    `, [
-      c.slug, c.name, c.website || null, c.sector, c.social_links,
-      c.business_description, c.audience, c.services, c.communication_style,
-      c.visual_identity, c.photo_types, c.avoid_elements, c.verified_info,
-      c.restrictions, c.colors,
-    ]);
-  }
-  console.log(`✅ Seed: ${DEFAULT_CLIENTS.length} perfiles de marca cargados`);
-}
-
-// ─── Auth middleware ─────────────────────────────────────────────────────
-function requireAuth(req, res, next) {
-  const key = process.env.ACCESS_KEY;
-  if (!key) return next(); // sin ACCESS_KEY configurada → acceso libre (dev)
-  const provided = req.headers['x-access-key'] || req.query.key;
-  if (provided !== key) {
-    return res.status(401).json({ error: 'Acceso no autorizado.' });
-  }
-  next();
-}
 
 // ─── CORS ───────────────────────────────────────────────────────────────
 // En producción, reemplaza '*' con tus dominios autorizados:
@@ -569,201 +389,10 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Carrusel Social AI Engine',
-    version: '2.0.0',
+    version: '1.9.1',
     openai: !!process.env.OPENAI_API_KEY,
-    database: !!db,
     timestamp: new Date().toISOString(),
   });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CLIENTES — CRUD
-// ═══════════════════════════════════════════════════════════════════════════
-
-// Helper: fila de DB → objeto del frontend
-function rowToClient(row) {
-  const parseJ = v => { try { return v ? JSON.parse(v) : null; } catch { return null; } };
-  return {
-    id:                  row.id,
-    slug:                row.slug,
-    name:                row.name,
-    website:             row.website,
-    sector:              row.sector,
-    logoUrl:             row.logo_url,
-    socialLinks:         parseJ(row.social_links) || {},
-    businessDescription: row.business_description,
-    audience:            row.audience,
-    services:            row.services,
-    communicationStyle:  row.communication_style,
-    visualIdentity:      row.visual_identity,
-    photoTypes:          row.photo_types,
-    avoidElements:       row.avoid_elements,
-    verifiedInfo:        row.verified_info,
-    restrictions:        row.restrictions,
-    colors:              parseJ(row.colors) || {},
-    sourceUrls:          parseJ(row.source_urls) || [],
-    analyzedAt:          row.analyzed_at,
-    status:              row.status,
-    createdAt:           row.created_at,
-    updatedAt:           row.updated_at,
-  };
-}
-
-// GET /api/clients — listar clientes activos
-app.get('/api/clients', requireAuth, async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'Base de datos no configurada.' });
-  try {
-    const { rows } = await db.query(
-      `SELECT id, slug, name, website, sector, logo_url, colors, status, updated_at
-       FROM clients WHERE status = 'active' ORDER BY name ASC`
-    );
-    res.json({ clients: rows.map(r => ({
-      id: r.id, slug: r.slug, name: r.name, website: r.website,
-      sector: r.sector, logoUrl: r.logo_url,
-      colors: (() => { try { return r.colors ? JSON.parse(r.colors) : {}; } catch { return {}; } })(),
-      status: r.status, updatedAt: r.updated_at,
-    }))});
-  } catch (err) {
-    console.error('GET /api/clients:', err.message);
-    res.status(500).json({ error: 'Error al obtener clientes.' });
-  }
-});
-
-// GET /api/clients/:id — perfil completo (por id o slug)
-app.get('/api/clients/:id', requireAuth, async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'Base de datos no configurada.' });
-  const { id } = req.params;
-  try {
-    const { rows } = await db.query(
-      `SELECT * FROM clients WHERE (id = $1 OR slug = $1) AND status != 'deleted' LIMIT 1`,
-      [id]
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Cliente no encontrado.' });
-    res.json({ client: rowToClient(rows[0]) });
-  } catch (err) {
-    console.error('GET /api/clients/:id:', err.message);
-    res.status(500).json({ error: 'Error al obtener el cliente.' });
-  }
-});
-
-// POST /api/clients — crear cliente
-app.post('/api/clients', requireAuth, async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'Base de datos no configurada.' });
-  const {
-    name, website, sector, logoUrl, socialLinks,
-    businessDescription, audience, services, communicationStyle,
-    visualIdentity, photoTypes, avoidElements, verifiedInfo, restrictions, colors,
-  } = req.body;
-
-  if (!name || name.trim().length < 2) {
-    return res.status(400).json({ error: 'El nombre comercial es obligatorio.' });
-  }
-
-  // Generar slug único a partir del nombre
-  const baseSlug = name.trim().toLowerCase()
-    .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i')
-    .replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n')
-    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0, 40);
-
-  let slug = baseSlug;
-  let attempt = 0;
-  while (true) {
-    const { rows } = await db.query('SELECT id FROM clients WHERE slug = $1', [slug]);
-    if (!rows.length) break;
-    attempt++;
-    slug = `${baseSlug}-${attempt}`;
-  }
-
-  try {
-    const { rows } = await db.query(`
-      INSERT INTO clients (
-        slug, name, website, sector, logo_url, social_links,
-        business_description, audience, services, communication_style,
-        visual_identity, photo_types, avoid_elements, verified_info,
-        restrictions, colors
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
-      RETURNING *
-    `, [
-      slug, name.trim(), website || null, sector || null, logoUrl || null,
-      socialLinks ? JSON.stringify(socialLinks) : null,
-      businessDescription || null, audience || null, services || null,
-      communicationStyle || null, visualIdentity || null, photoTypes || null,
-      avoidElements || null, verifiedInfo || null, restrictions || null,
-      colors ? JSON.stringify(colors) : null,
-    ]);
-    res.status(201).json({ client: rowToClient(rows[0]) });
-  } catch (err) {
-    console.error('POST /api/clients:', err.message);
-    res.status(500).json({ error: 'Error al crear el cliente.' });
-  }
-});
-
-// PATCH /api/clients/:id — actualizar cliente
-app.patch('/api/clients/:id', requireAuth, async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'Base de datos no configurada.' });
-  const { id } = req.params;
-
-  const allowed = [
-    'name','website','sector','logo_url','social_links',
-    'business_description','audience','services','communication_style',
-    'visual_identity','photo_types','avoid_elements','verified_info',
-    'restrictions','colors','status',
-  ];
-
-  // Mapeo camelCase → snake_case
-  const camelToSnake = {
-    name:'name', website:'website', sector:'sector',
-    logoUrl:'logo_url', socialLinks:'social_links',
-    businessDescription:'business_description', audience:'audience',
-    services:'services', communicationStyle:'communication_style',
-    visualIdentity:'visual_identity', photoTypes:'photo_types',
-    avoidElements:'avoid_elements', verifiedInfo:'verified_info',
-    restrictions:'restrictions', colors:'colors', status:'status',
-  };
-
-  const fields = [];
-  const values = [];
-  let i = 1;
-  for (const [camel, snake] of Object.entries(camelToSnake)) {
-    if (camel in req.body && allowed.includes(snake)) {
-      fields.push(`${snake} = $${i++}`);
-      const v = req.body[camel];
-      values.push(typeof v === 'object' && v !== null ? JSON.stringify(v) : v);
-    }
-  }
-  if (!fields.length) return res.status(400).json({ error: 'No hay campos para actualizar.' });
-  fields.push(`updated_at = NOW()`);
-  values.push(id);
-
-  try {
-    const { rows } = await db.query(
-      `UPDATE clients SET ${fields.join(', ')} WHERE (id = $${i} OR slug = $${i}) RETURNING *`,
-      values
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Cliente no encontrado.' });
-    res.json({ client: rowToClient(rows[0]) });
-  } catch (err) {
-    console.error('PATCH /api/clients/:id:', err.message);
-    res.status(500).json({ error: 'Error al actualizar el cliente.' });
-  }
-});
-
-// DELETE /api/clients/:id — archivar (soft delete)
-app.delete('/api/clients/:id', requireAuth, async (req, res) => {
-  if (!db) return res.status(503).json({ error: 'Base de datos no configurada.' });
-  const { id } = req.params;
-  try {
-    const { rows } = await db.query(
-      `UPDATE clients SET status = 'archived', updated_at = NOW()
-       WHERE (id = $1 OR slug = $1) AND status = 'active' RETURNING id, name`,
-      [id]
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Cliente no encontrado.' });
-    res.json({ message: `Cliente "${rows[0].name}" archivado.`, id: rows[0].id });
-  } catch (err) {
-    console.error('DELETE /api/clients/:id:', err.message);
-    res.status(500).json({ error: 'Error al archivar el cliente.' });
-  }
 });
 
 // ─── 404 ──────────────────────────────────────────────────────────────────
@@ -775,8 +404,7 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Error interno del servidor.' });
 });
 
-app.listen(PORT, async () => {
-  console.log(`✅ Carrusel AI Engine v2.0.0 corriendo en puerto ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`✅ Carrusel AI Engine corriendo en puerto ${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/api/health`);
-  await initDB();
 });
