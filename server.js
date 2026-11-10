@@ -565,6 +565,20 @@ app.post('/api/carousel/text', textLimiter, async (req, res) => {
   }
   const count = Math.min(Math.max(parseInt(slideCount) || 5, 3), 8);
 
+  // ── Validación previa para noticias ──────────────────────────────────────
+  // Un titular solo (<120 chars sin URL) no es suficiente para precisión periodística
+  if (category === 'noticias') {
+    const topicClean = topic.trim();
+    const hasUrl     = /https?:\/\/\S+/.test(topicClean);
+    if (!hasUrl && topicClean.length < 120) {
+      return res.status(422).json({
+        error: 'INFORMACIÓN_INSUFICIENTE',
+        message: 'Para generar un carrusel de noticias con precisión periodística, proporciona el texto completo del artículo o el enlace a la fuente original. Un titular solo no es suficiente para garantizar exactitud.',
+        requiresSource: true,
+      });
+    }
+  }
+
   const catInstructions = CAT_INSTRUCTIONS[category] || CAT_INSTRUCTIONS.publicidad;
   const slideTypesDesc = Array.from({ length: count }, (_, i) => SLIDE_TYPES[i + 1] || 'content').join(', ');
 
@@ -648,6 +662,10 @@ Devuelve ÚNICAMENTE este JSON:
 ${JSON_SCHEMA}`;
 
   } else if (category === 'noticias') {
+    // Detectar URL en el texto de la noticia (para usar en cierre)
+    const urlEnNoticia = topic.match(/https?:\/\/\S+/);
+    const sourceUrl = urlEnNoticia ? urlEnNoticia[0] : null;
+
     userPrompt = `Redacta un carrusel periodístico de ${count} láminas.
 
 TEXTO / INFORMACIÓN DE LA NOTICIA:
@@ -655,11 +673,14 @@ TEXTO / INFORMACIÓN DE LA NOTICIA:
 ${topic.slice(0, 3000)}
 ---
 
-INSTRUCCIONES:
-- Usa ÚNICAMENTE los hechos presentes en el texto anterior.
-- Estructura: titular → contexto (quién/cuándo/dónde) → 3 puntos clave → implicaciones → cierre con fuente.
-- Si falta información para alguna lámina, indica "[Dato no disponible]" en el body.
-- imagePrompt: ilustración editorial o fotografía documental. Estilo periodístico, sin glamour.
+INSTRUCCIONES PERIODÍSTICAS (OBLIGATORIAS):
+- Usa ÚNICAMENTE los hechos presentes en el texto anterior. CERO invención.
+- Estructura: titular → contexto (quién/cuándo/dónde) → 3 puntos clave → implicaciones → cierre periodístico.
+- Si un dato secundario no está disponible, OMÍTELO por completo. NUNCA escribas "[Dato no disponible]", "[Sin información]", "[No disponible]" ni ningún marcador de relleno. Esos textos no deben aparecer en ninguna lámina.
+- Si falta la fecha o el lugar, simplemente no los menciones en esa lámina.
+- Usa lenguaje condicional cuando el texto use expectativas: "espera", "prevé", "podría", "se estima". NUNCA los conviertas en hechos confirmados.
+- Lámina 5 (cierre): ${sourceUrl ? `Incluye exactamente: "Lee la noticia completa en ${sourceUrl}". No uses CTAs comerciales.` : 'Usa: "Lee la noticia completa en nuestro sitio" o "Sigue nuestra cobertura". PROHIBIDO: "Solicita información", "Contáctanos", "Inscríbete" o cualquier CTA comercial.'}
+- imagePrompt: ilustración editorial o fotografía documental. Estilo periodístico, sin glamour ni imágenes aspiracionales.
 
 Devuelve ÚNICAMENTE este JSON:
 ${JSON_SCHEMA}`;
@@ -752,6 +773,50 @@ ${JSON_SCHEMA}`;
       imagePrompt: sl.imagePrompt || null,
       photo: null,
     }));
+
+    // ── Post-procesado de precisión periodística para noticias ───────────
+    if (category === 'noticias') {
+      const placeholderRe   = /\[(?:Dato|Información|dato|información|Sin información|No disponible|no disponible)[^\]]*\]/gi;
+      const forbiddenCtaRe  = /\b(?:solicita\s+información|contáctanos|ll[aá]manos|inscr[íi]bete|reg[íi]strate|agenda\s+(?:una?\s+)?cita)\b/gi;
+      const urlEnTopic      = topic.match(/https?:\/\/\S+/);
+      const cierreDefault   = urlEnTopic
+        ? `Lee la noticia completa en ${urlEnTopic[0]}`
+        : 'Lee la noticia completa en nuestro sitio. Sigue nuestra cobertura.';
+
+      slides.forEach(slide => {
+        // 1. Eliminar marcadores de datos faltantes del body
+        if (slide.body) {
+          slide.body = slide.body.replace(placeholderRe, '').replace(/\s{2,}/g, ' ').trim() || null;
+        }
+        // 2. Eliminar marcadores de datos faltantes de los bullets
+        if (slide.bullets) {
+          slide.bullets = slide.bullets
+            .map(b => b.replace(placeholderRe, '').trim())
+            .filter(b => b.length > 3);
+          if (!slide.bullets.length) slide.bullets = null;
+        }
+        // 3. Corregir CTAs comerciales en lámina de cierre
+        if (slide.type === 'cta') {
+          if (!slide.body || forbiddenCtaRe.test(slide.body)) {
+            slide.body = cierreDefault;
+          }
+          if (slide.headline && forbiddenCtaRe.test(slide.headline)) {
+            slide.headline = 'Sigue nuestra cobertura.';
+          }
+        }
+        // 4. Mostrar fuente/fecha solo si aparece en el topic original
+        // (no es necesario modificar — si el prompt dijo omitir, ya no estará)
+      });
+
+      // 5. Validar que ninguna lámina quedó completamente vacía
+      const emptyIdx = slides.findIndex(s => !s.headline && !s.body && !s.bullets);
+      if (emptyIdx !== -1) {
+        return res.status(422).json({
+          error: 'LÁMINA_INSUFICIENTE',
+          message: `La lámina ${emptyIdx + 1} no tiene contenido verificado tras la validación periodística. Proporciona más información de la noticia para continuar.`,
+        });
+      }
+    }
 
     return res.json({
       slides,
