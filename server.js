@@ -251,6 +251,143 @@ const SLIDE_TYPES = {
   8: 'cta',
 };
 
+// ─── Scraper de artículos para categoría Noticias ────────────────────────
+const cheerio = require('cheerio');
+
+// Hosts bloqueados por seguridad (SSRF)
+const BLOCKED_HOST_RE = /^(localhost|127\.|0\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|metadata\.google\.internal|::1)/i;
+
+/**
+ * Descarga y extrae el contenido de un artículo web.
+ * Lanza un Error con mensaje en español si no puede obtener el texto.
+ * @returns {{ title, date, author, source, body, url, domain }}
+ */
+async function fetchArticleFromUrl(rawUrl) {
+  // Validar URL
+  let parsed;
+  try { parsed = new URL(rawUrl); } catch { throw new Error('La dirección web no tiene un formato válido.'); }
+  if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Solo se aceptan direcciones http o https.');
+  if (BLOCKED_HOST_RE.test(parsed.hostname)) throw new Error('Esa dirección web no está permitida.');
+
+  // Fetch con timeout de 12 segundos y User-Agent
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12_000);
+  let html;
+  try {
+    const res = await fetch(parsed.href, {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; CarruselSocialBot/1.0)',
+        'Accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-419,es;q=0.9,en;q=0.8',
+        'Cache-Control': 'no-cache',
+      },
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`El sitio devolvió el código HTTP ${res.status}. Puede que el artículo esté restringido o haya cambiado de URL.`);
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('text/html')) throw new Error('La URL no devuelve una página HTML. Verifica que sea un artículo web.');
+    // Limitar a 2 MB
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > 2_097_152) throw new Error('El artículo es demasiado grande para procesarse automáticamente.');
+    html = Buffer.from(buf).toString('utf-8');
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error('El sitio tardó demasiado en responder (límite: 12 s). Pega el texto del artículo directamente.');
+    throw err;
+  }
+
+  const $ = cheerio.load(html);
+
+  // ── Metadatos ────────────────────────────────────────────────────────────
+  const title =
+    ($('meta[property="og:title"]').attr('content') ||
+     $('meta[name="twitter:title"]').attr('content') ||
+     $('h1').first().text() ||
+     $('title').text()).trim().slice(0, 300);
+
+  const rawDate =
+    $('meta[property="article:published_time"]').attr('content') ||
+    $('meta[name="date"]').attr('content') ||
+    $('time[datetime]').attr('datetime') ||
+    $('time').first().text().trim() ||
+    $('[class*="date"],[class*="fecha"],[class*="published"]').first().text().trim();
+  const date = (rawDate || '').slice(0, 100).trim();
+
+  const author =
+    ($('meta[name="author"]').attr('content') ||
+     $('[rel="author"]').first().text() ||
+     $('[class*="author"],[class*="autor"],[class*="byline"]').first().text()).trim().slice(0, 100);
+
+  const source =
+    ($('meta[property="og:site_name"]').attr('content') ||
+     parsed.hostname.replace(/^www\./, '')).trim().slice(0, 100);
+
+  // ── Cuerpo del artículo ──────────────────────────────────────────────────
+  // Eliminar elementos que no son contenido
+  $('script, style, nav, header, footer, aside, .ad, .advertisement, .related, .social, .comments, [class*="sidebar"], [class*="menu"], [id*="menu"], [class*="share"], [class*="newsletter"]').remove();
+
+  // Intentar selectores comunes de CMS (orden de prioridad)
+  const contentSelectors = [
+    '[itemprop="articleBody"]',
+    'article .entry-content',
+    'article .post-content',
+    '.entry-content',
+    '.post-content',
+    '.article-body',
+    '.article-content',
+    '.content-article',
+    '.td-post-content',
+    '.post-body',
+    '.story-body',
+    '.news-content',
+    'article',
+    'main',
+  ];
+
+  let bodyText = '';
+  for (const sel of contentSelectors) {
+    const el = $(sel).first();
+    if (el.length) {
+      const paras = el.find('p')
+        .map((_, p) => $(p).text().trim())
+        .get()
+        .filter(t => t.length > 25);
+      if (paras.length >= 2) {
+        bodyText = paras.join('\n\n');
+        break;
+      }
+    }
+  }
+
+  // Fallback: todos los <p> del documento
+  if (bodyText.length < 80) {
+    bodyText = $('p')
+      .map((_, p) => $(p).text().trim())
+      .get()
+      .filter(t => t.length > 25)
+      .join('\n\n');
+  }
+
+  if (bodyText.length < 60) {
+    throw new Error(
+      'No se pudo extraer el texto del artículo. Es posible que el sitio requiera JavaScript, tenga acceso restringido o protección anti-bot. ' +
+      'Por favor, copia y pega el texto completo del artículo en el campo.'
+    );
+  }
+
+  return {
+    title,
+    date,
+    author,
+    source,
+    body: bodyText.slice(0, 5000),
+    url: parsed.href,
+    domain: parsed.hostname.replace(/^www\./, ''),
+  };
+}
+
 // ─── Instrucciones por categoría (Fase B) ────────────────────────────────
 const CAT_INSTRUCTIONS = {
 
@@ -565,12 +702,26 @@ app.post('/api/carousel/text', textLimiter, async (req, res) => {
   }
   const count = Math.min(Math.max(parseInt(slideCount) || 5, 3), 8);
 
-  // ── Validación previa para noticias ──────────────────────────────────────
-  // Un titular solo (<120 chars sin URL) no es suficiente para precisión periodística
+  // ── Noticias: detectar URL y recuperar artículo ───────────────────────────
+  let articleData = null;
   if (category === 'noticias') {
     const topicClean = topic.trim();
-    const hasUrl     = /https?:\/\/\S+/.test(topicClean);
-    if (!hasUrl && topicClean.length < 120) {
+    const isOnlyUrl  = /^https?:\/\/\S+$/.test(topicClean);           // solo una URL, sin más texto
+    const hasEmbeddedUrl = !isOnlyUrl && /https?:\/\/\S+/.test(topicClean); // URL dentro de texto
+
+    if (isOnlyUrl) {
+      // El campo contiene exclusivamente una URL — intentar recuperar el artículo
+      try {
+        articleData = await fetchArticleFromUrl(topicClean);
+      } catch (err) {
+        return res.status(422).json({
+          error: 'URL_NO_ACCESIBLE',
+          message: `No se pudo recuperar el artículo: ${err.message}`,
+          requiresText: true,
+        });
+      }
+    } else if (!hasEmbeddedUrl && topicClean.length < 120) {
+      // Solo un titular corto sin URL ni cuerpo — pedir más información
       return res.status(422).json({
         error: 'INFORMACIÓN_INSUFICIENTE',
         message: 'Para generar un carrusel de noticias con precisión periodística, proporciona el texto completo del artículo o el enlace a la fuente original. Un titular solo no es suficiente para garantizar exactitud.',
@@ -662,25 +813,49 @@ Devuelve ÚNICAMENTE este JSON:
 ${JSON_SCHEMA}`;
 
   } else if (category === 'noticias') {
-    // Detectar URL en el texto de la noticia (para usar en cierre)
-    const urlEnNoticia = topic.match(/https?:\/\/\S+/);
-    const sourceUrl = urlEnNoticia ? urlEnNoticia[0] : null;
+    // Construir el bloque de contenido para OpenAI
+    let noticiaContent;
+    let sourceDomain;
+
+    if (articleData) {
+      // Artículo completo recuperado desde la URL
+      sourceDomain = articleData.domain;
+      const metaLines = [
+        articleData.title  ? `TÍTULO: ${articleData.title}`   : '',
+        articleData.date   ? `FECHA: ${articleData.date}`     : '',
+        articleData.author ? `AUTOR: ${articleData.author}`   : '',
+        articleData.source ? `FUENTE: ${articleData.source}`  : '',
+      ].filter(Boolean).join('\n');
+      noticiaContent = `${metaLines}\n\nCUERPO DEL ARTÍCULO:\n${articleData.body}`;
+    } else {
+      // Texto pegado directamente (con o sin URL embebida)
+      const urlInTopic = topic.match(/https?:\/\/(\S+)/);
+      sourceDomain = urlInTopic ? urlInTopic[1].replace(/^www\./, '').split('/')[0] : null;
+      noticiaContent = topic.slice(0, 3000);
+    }
+
+    // Instrucción de cierre: dominio solo, sin URL larga
+    const cierreInstruccion = sourceDomain
+      ? `Escribe EXACTAMENTE en body: "Lee la noticia completa en ${sourceDomain}" — solo el dominio, SIN imprimir la URL larga.`
+      : 'Escribe: "Lee la noticia completa en nuestro sitio" o "Sigue nuestra cobertura".';
 
     userPrompt = `Redacta un carrusel periodístico de ${count} láminas.
 
 TEXTO / INFORMACIÓN DE LA NOTICIA:
 ---
-${topic.slice(0, 3000)}
+${noticiaContent}
 ---
 
 INSTRUCCIONES PERIODÍSTICAS (OBLIGATORIAS):
-- Usa ÚNICAMENTE los hechos presentes en el texto anterior. CERO invención.
+- Usa ÚNICAMENTE los hechos, fechas, declaraciones y cifras presentes en el texto anterior. CERO invención.
 - Estructura: titular → contexto (quién/cuándo/dónde) → 3 puntos clave → implicaciones → cierre periodístico.
-- Si un dato secundario no está disponible, OMÍTELO por completo. NUNCA escribas "[Dato no disponible]", "[Sin información]", "[No disponible]" ni ningún marcador de relleno. Esos textos no deben aparecer en ninguna lámina.
-- Si falta la fecha o el lugar, simplemente no los menciones en esa lámina.
-- Usa lenguaje condicional cuando el texto use expectativas: "espera", "prevé", "podría", "se estima". NUNCA los conviertas en hechos confirmados.
-- Lámina 5 (cierre): ${sourceUrl ? `Incluye exactamente: "Lee la noticia completa en ${sourceUrl}". No uses CTAs comerciales.` : 'Usa: "Lee la noticia completa en nuestro sitio" o "Sigue nuestra cobertura". PROHIBIDO: "Solicita información", "Contáctanos", "Inscríbete" o cualquier CTA comercial.'}
-- imagePrompt: ilustración editorial o fotografía documental. Estilo periodístico, sin glamour ni imágenes aspiracionales.
+- Si un dato secundario no está en el texto, OMÍTELO completamente. NUNCA escribas "[Dato no disponible]", "[Sin información]", "[No disponible]" ni ningún marcador de relleno.
+- Si falta la fecha o el lugar, no los menciones.
+- Usa lenguaje condicional cuando el texto use expectativas: "espera", "prevé", "podría", "se estima". NUNCA conviertas expectativas en hechos confirmados.
+- Atribuye siempre las declaraciones: "según X", "declaró Y", "de acuerdo con Z".
+- Lámina 5 (cierre): ${cierreInstruccion} PROHIBIDO: "Solicita información", "Contáctanos", "Inscríbete" ni ningún CTA comercial.
+- Titulares y body: texto conciso, máximo 12 palabras en headline, máximo 25 palabras en body. No desbordas el diseño.
+- imagePrompt: ilustración editorial o fotografía documental en inglés. Estilo periodístico, sin glamour ni imágenes aspiracionales.
 
 Devuelve ÚNICAMENTE este JSON:
 ${JSON_SCHEMA}`;
@@ -778,9 +953,13 @@ ${JSON_SCHEMA}`;
     if (category === 'noticias') {
       const placeholderRe   = /\[(?:Dato|Información|dato|información|Sin información|No disponible|no disponible)[^\]]*\]/gi;
       const forbiddenCtaRe  = /\b(?:solicita\s+información|contáctanos|ll[aá]manos|inscr[íi]bete|reg[íi]strate|agenda\s+(?:una?\s+)?cita)\b/gi;
-      const urlEnTopic      = topic.match(/https?:\/\/\S+/);
-      const cierreDefault   = urlEnTopic
-        ? `Lee la noticia completa en ${urlEnTopic[0]}`
+      // Dominio para el cierre (prioridad: articleData > URL en topic)
+      const _domain = articleData?.domain || (() => {
+        const m = topic.match(/https?:\/\/(?:www\.)?([^/\s]+)/);
+        return m ? m[1] : null;
+      })();
+      const cierreDefault = _domain
+        ? `Lee la noticia completa en ${_domain}`
         : 'Lee la noticia completa en nuestro sitio. Sigue nuestra cobertura.';
 
       slides.forEach(slide => {
